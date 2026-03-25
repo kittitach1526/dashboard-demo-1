@@ -26,26 +26,11 @@ function clearCookie(name) {
   document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`;
 }
 
-export function OEEProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    if (typeof window === "undefined") return null;
-    try {
-      const raw = localStorage.getItem("oee:user");
-      if (raw) return JSON.parse(raw);
-    } catch {
-      // ignore
-    }
-    try {
-      const raw = readCookie("oee_user");
-      if (raw) return JSON.parse(raw);
-    } catch {
-      // ignore
-    }
-    return null;
-  });
+export function OEEProvider({ children, initialUser = null }) {
+  const [user, setUser] = useState(initialUser);
   const [ms, setMs] = useState(() => MACHINE_DEFS.map(createMachineState));
   const [refreshInt, setRefreshInt] = useState(3000);
-  const [time, setTime] = useState(new Date());
+  const [time, setTime] = useState(() => new Date(0));
   const [trendHist, setTrendHist] = useState([]);
   const [heatData, setHeatData] = useState([
     [88, 82, 75, 91, 87, 72, 79],
@@ -56,6 +41,30 @@ export function OEEProvider({ children }) {
   const [shifts, setShifts] = useState(DEFAULT_SHIFTS);
 
   const tickRef = useRef(0);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (initialUser) return;
+    try {
+      const raw = localStorage.getItem("oee:user");
+      if (raw) {
+        setUser(JSON.parse(raw));
+        return;
+      }
+    } catch {
+      // ignore
+    }
+    try {
+      const raw = readCookie("oee_user");
+      if (raw) setUser(JSON.parse(raw));
+    } catch {
+      // ignore
+    }
+  }, [initialUser]);
+
+  useEffect(() => {
+    setTime(new Date());
+  }, []);
 
   useEffect(() => {
     try {
