@@ -65,7 +65,7 @@ export default function DataEntryPage() {
                 }
               >
                 <div className="mb-2 flex items-center justify-between">
-                  <div className={"text-xs font-bold " + (s.active ? "text-sky-200" : "text-slate-500")}>กะ {i + 1}</div>
+                  <div className={"text-xs font-bold " + (s.active ? "text-sky-200" : "text-slate-500")}>Day shift {i + 1}</div>
                   <div
                     className={
                       "rounded-full border px-2 py-0.5 font-mono text-[10px] " +

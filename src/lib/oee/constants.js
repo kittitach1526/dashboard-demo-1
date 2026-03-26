@@ -25,10 +25,10 @@ export const ROLE_COLOR = {
 };
 
 export const DEFAULT_SHIFTS = [
-  { id: 1, name: "กะ 1 (เช้า)", start: "06:00", end: "14:00", active: true },
-  { id: 2, name: "กะ 2 (บ่าย)", start: "14:00", end: "22:00", active: true },
-  { id: 3, name: "กะ 3 (ดึก)", start: "22:00", end: "06:00", active: true },
-  { id: 4, name: "กะ 4 (พิเศษ)", start: "08:00", end: "20:00", active: false },
+  { id: 1, name: "Day shift A", start: "06:00", end: "14:00", active: true },
+  { id: 2, name: "Day shift B", start: "14:00", end: "22:00", active: true },
+  { id: 3, name: "Night shift A", start: "22:00", end: "06:00", active: true },
+  { id: 4, name: "Day shift C", start: "08:00", end: "20:00", active: false },
 ];
 
 export const MACHINE_DEFS = [
