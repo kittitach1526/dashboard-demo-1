@@ -28,6 +28,115 @@ export default function OverviewPage() {
     [ms]
   );
 
+  const liveAlerts = useMemo(() => {
+    const ts = time.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
+    const items = [];
+
+    for (const m of ms) {
+      if (m.status === "breakdown") {
+        items.push({
+          id: `${m.id}-bd`,
+          sev: "CRITICAL",
+          icon: "🚨",
+          title: `${m.name} — Breakdown`,
+          detail: `OEE:${m.oee}% Avail:${Math.round(m.availability)}%`,
+          time: ts,
+        });
+      }
+      if (m.status !== "breakdown" && m.oee < 70) {
+        items.push({
+          id: `${m.id}-oee`,
+          sev: "WARNING",
+          icon: "⚠️",
+          title: `${m.name} — Low OEE (${m.oee}%)`,
+          detail: `Avail:${Math.round(m.availability)}% Perf:${Math.round(m.performance)}% Qual:${Math.round(m.quality)}%`,
+          time: ts,
+        });
+      }
+      if (m.quality < 95) {
+        items.push({
+          id: `${m.id}-qual`,
+          sev: "WARNING",
+          icon: "🧪",
+          title: `${m.name} — Quality below 95% (${Math.round(m.quality)}%)`,
+          detail: `Scrap:${m.scrapCount} units`,
+          time: ts,
+        });
+      }
+    }
+
+    const infoPool = ms
+      .filter((m) => m.status !== "breakdown")
+      .slice()
+      .sort((a, b) => b.oee - a.oee)
+      .slice(0, 2);
+
+    for (const m of infoPool) {
+      items.push({
+        id: `${m.id}-info`,
+        sev: "INFO",
+        icon: "ℹ️",
+        title: `${m.name} — Status Update`,
+        detail: `Status:${m.status} OEE:${m.oee}% Good:${m.goodCount.toLocaleString()}/${m.totalCount.toLocaleString()}`,
+        time: ts,
+      });
+    }
+
+    const hasCrit = items.some((x) => x.sev === "CRITICAL");
+    const hasWarn = items.some((x) => x.sev === "WARNING");
+    const hasInfo = items.some((x) => x.sev === "INFO");
+
+    const sample = ms[0];
+    const sampleName = sample?.name || "Machine";
+    const sampleLine = sample?.line ?? "-";
+
+    if (!hasCrit) {
+      items.unshift({
+        id: `demo-crit`,
+        sev: "CRITICAL",
+        icon: "🚨",
+        title: `${sampleName} — (Demo) Breakdown`,
+        detail: `Line:${sampleLine} Demo critical alert for presentation.`,
+        time: ts,
+      });
+    }
+
+    if (!hasWarn) {
+      items.push({
+        id: `demo-warn`,
+        sev: "WARNING",
+        icon: "⚠️",
+        title: `${sampleName} — (Demo) Warning`,
+        detail: `Demo warning alert for presentation.`,
+        time: ts,
+      });
+    }
+
+    if (!hasInfo) {
+      items.push({
+        id: `demo-info`,
+        sev: "INFO",
+        icon: "ℹ️",
+        title: `${sampleName} — (Demo) Info`,
+        detail: `Demo info alert for presentation.`,
+        time: ts,
+      });
+    }
+
+    const rank = { CRITICAL: 0, WARNING: 1, INFO: 2 };
+    const sorted = items.sort((a, b) => (rank[a.sev] ?? 9) - (rank[b.sev] ?? 9) || a.title.localeCompare(b.title));
+
+    const firstCrit = sorted.find((x) => x.sev === "CRITICAL");
+    const firstWarn = sorted.find((x) => x.sev === "WARNING");
+    const firstInfo = sorted.find((x) => x.sev === "INFO");
+
+    const must = [firstCrit, firstWarn, firstInfo].filter(Boolean);
+    const mustIds = new Set(must.map((m) => m.id));
+    const rest = sorted.filter((x) => !mustIds.has(x.id));
+
+    return [...must, ...rest].slice(0, 6);
+  }, [ms, time]);
+
   const losses = useMemo(
     () => [
       { name: "Breakdowns", val: Math.round((kpi.totalDown / kpi.planned) * 100 * 0.38 * 10) / 10, cat: "Availability", c: "#ef4444" },
@@ -80,6 +189,8 @@ export default function OverviewPage() {
                     }
                     color={k.color}
                     target={85}
+                    responsive
+                    className="w-full"
                   />
                 </div>
               </div>
@@ -209,35 +320,27 @@ export default function OverviewPage() {
 
         <Card title="🔔 Alerts" right={<Badge color="#ef4444">{alertsCount}</Badge>}>
           <div className="space-y-2">
-            {ms
-              .filter((m) => m.status === "breakdown")
-              .map((m) => (
-                <div key={m.id} className="rounded-xl border-l-4 border-red-500 bg-red-950/20 p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="text-[10px] font-semibold text-red-200">CRITICAL</div>
-                    <div className="text-[10px] text-slate-500">{time.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}</div>
+            {liveAlerts.map((a) => {
+              const left = a.sev === "CRITICAL" ? "border-red-500" : a.sev === "WARNING" ? "border-amber-400" : "border-sky-400";
+              const bg = a.sev === "CRITICAL" ? "bg-red-950/20" : a.sev === "WARNING" ? "bg-amber-950/10" : "bg-sky-950/10";
+              const col = a.sev === "CRITICAL" ? "text-red-200" : a.sev === "WARNING" ? "text-amber-200" : "text-sky-200";
+              return (
+                <div key={a.id} className={`rounded-xl border-l-4 ${left} ${bg} p-3`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className={`text-[10px] font-semibold ${col}`}>{a.sev}</div>
+                    <div className="text-[10px] text-slate-500">{a.time}</div>
                   </div>
-                  <div className="mt-1 text-sm text-red-100">{m.name} — Breakdown</div>
-                  <div className="mt-1 text-xs text-slate-500">OEE:{m.oee}% Avail:{Math.round(m.availability)}%</div>
-                </div>
-              ))}
-
-            {ms
-              .filter((m) => m.status !== "breakdown" && m.oee < 70)
-              .slice(0, 3)
-              .map((m) => (
-                <div key={m.id} className="rounded-xl border-l-4 border-amber-400 bg-amber-950/10 p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="text-[10px] font-semibold text-amber-200">WARNING</div>
-                    <div className="text-[10px] text-slate-500">{time.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}</div>
+                  <div className="mt-1 text-sm text-slate-100">
+                    {a.icon} {a.title}
                   </div>
-                  <div className="mt-1 text-sm text-amber-100">{m.name} — Low OEE {m.oee}%</div>
+                  <div className="mt-1 text-xs text-slate-500">{a.detail}</div>
                 </div>
-              ))}
+              );
+            })}
 
-            {ms.every((m) => m.status !== "breakdown" && m.oee >= 70) && (
+            {liveAlerts.length === 0 && (
               <div className="rounded-xl border-l-4 border-emerald-400 bg-emerald-950/10 p-3 text-sm text-emerald-200">
-                ✓ All systems normal
+                ✓ No active alerts
               </div>
             )}
           </div>

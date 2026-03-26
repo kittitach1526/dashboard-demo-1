@@ -32,6 +32,7 @@ export function OEEProvider({ children, initialUser = null }) {
   const [refreshInt, setRefreshInt] = useState(3000);
   const [time, setTime] = useState(() => new Date(0));
   const [trendHist, setTrendHist] = useState([]);
+  const [alertLog, setAlertLog] = useState([]);
   const [heatData, setHeatData] = useState([
     [88, 82, 75, 91, 87, 72, 79],
     [84, 79, 81, 88, 92, 68, 75],
@@ -41,6 +42,7 @@ export function OEEProvider({ children, initialUser = null }) {
   const [shifts, setShifts] = useState(DEFAULT_SHIFTS);
 
   const tickRef = useRef(0);
+  const prevAlertKeysRef = useRef(new Set());
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -139,6 +141,91 @@ export function OEEProvider({ children, initialUser = null }) {
     return () => clearInterval(t);
   }, [refreshInt]);
 
+  useEffect(() => {
+    const nowMs = time instanceof Date ? time.getTime() : Date.now();
+
+    const active = [];
+    for (const m of ms) {
+      if (m.status === "breakdown") {
+        active.push({
+          key: `bd:${m.id}`,
+          severity: "CRITICAL",
+          machineId: m.id,
+          machineName: m.name,
+          title: `${m.name} — Breakdown`,
+          detail: `OEE:${m.oee}% Avail:${Math.round(m.availability)}%`,
+        });
+      }
+      if (m.status !== "breakdown" && m.oee < 70) {
+        active.push({
+          key: `oee:${m.id}`,
+          severity: "WARNING",
+          machineId: m.id,
+          machineName: m.name,
+          title: `${m.name} — Low OEE (${m.oee}%)`,
+          detail: `Avail:${Math.round(m.availability)}% Perf:${Math.round(m.performance)}% Qual:${Math.round(m.quality)}%`,
+        });
+      }
+      if (m.quality < 95) {
+        active.push({
+          key: `qual:${m.id}`,
+          severity: "WARNING",
+          machineId: m.id,
+          machineName: m.name,
+          title: `${m.name} — Quality below 95% (${Math.round(m.quality)}%)`,
+          detail: `Scrap:${m.scrapCount} units`,
+        });
+      }
+    }
+
+    const nextKeys = new Set(active.map((a) => a.key));
+    const prevKeys = prevAlertKeysRef.current;
+
+    const raised = active.filter((a) => !prevKeys.has(a.key));
+    const clearedKeys = [...prevKeys].filter((k) => !nextKeys.has(k));
+
+    if (raised.length === 0 && clearedKeys.length === 0) {
+      prevAlertKeysRef.current = nextKeys;
+      return;
+    }
+
+    setAlertLog((prev) => {
+      const out = [...prev];
+
+      for (const a of raised) {
+        out.unshift({
+          id: `${nowMs}:${a.key}:raise`,
+          ts: nowMs,
+          severity: a.severity,
+          event: "RAISED",
+          key: a.key,
+          machineId: a.machineId,
+          machineName: a.machineName,
+          title: a.title,
+          detail: a.detail,
+        });
+      }
+
+      for (const k of clearedKeys) {
+        out.unshift({
+          id: `${nowMs}:${k}:clear`,
+          ts: nowMs,
+          severity: "INFO",
+          event: "CLEARED",
+          key: k,
+          machineId: k.split(":")[1] || "",
+          machineName: "",
+          title: `Alert cleared — ${k}`,
+          detail: "Recovered / back to normal",
+        });
+      }
+
+      return out.slice(0, 200);
+    });
+
+    prevAlertKeysRef.current = nextKeys;
+  }, [ms, time]);
+
   const kpi = useMemo(() => calcKPI(ms), [ms]);
 
   const value = useMemo(
@@ -151,13 +238,14 @@ export function OEEProvider({ children, initialUser = null }) {
       setRefreshInt,
       time,
       trendHist,
+      alertLog,
       heatData,
       shiftHours,
       shifts,
       setShifts,
       kpi,
     }),
-    [user, ms, refreshInt, time, trendHist, heatData, shiftHours, shifts, kpi]
+    [user, ms, refreshInt, time, trendHist, alertLog, heatData, shiftHours, shifts, kpi]
   );
 
   return <OEEContext.Provider value={value}>{children}</OEEContext.Provider>;

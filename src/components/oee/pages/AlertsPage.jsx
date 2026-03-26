@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import Card from "@/components/oee/ui/Card";
 
@@ -8,12 +8,34 @@ import { useOEE } from "@/components/oee/OEEContext";
 import { ROLE_ACCESS } from "@/lib/oee/constants";
 
 export default function AlertsPage() {
-  const { user, ms, time } = useOEE();
+  const { user, alertLog } = useOEE();
   const allowed = ROLE_ACCESS[user?.role] || ["overview"];
 
-  const critical = useMemo(() => ms.filter((m) => m.status === "breakdown"), [ms]);
-  const warnings = useMemo(() => ms.filter((m) => m.status !== "breakdown" && m.oee < 70), [ms]);
-  const qIssues = useMemo(() => ms.filter((m) => m.quality < 95), [ms]);
+  const pageSize = 10;
+  const [page, setPage] = useState(1);
+
+  const totalPages = Math.max(1, Math.ceil((alertLog?.length || 0) / pageSize));
+
+  useEffect(() => {
+    setPage((p) => Math.min(Math.max(1, p), totalPages));
+  }, [totalPages]);
+
+  const counts = useMemo(() => {
+    let c = 0;
+    let w = 0;
+    let i = 0;
+    for (const a of alertLog) {
+      if (a.severity === "CRITICAL") c++;
+      else if (a.severity === "WARNING") w++;
+      else i++;
+    }
+    return { critical: c, warning: w, info: i };
+  }, [alertLog]);
+
+  const pageItems = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return alertLog.slice(start, start + pageSize);
+  }, [alertLog, page]);
 
   if (!allowed.includes("alerts")) {
     return (
@@ -26,97 +48,89 @@ export default function AlertsPage() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-      <Card title="🔔 Live Alert Feed">
+    <div className="grid grid-cols-1 gap-3">
+      <Card
+        title="🧾 Alert Log"
+        right={
+          <div className="flex items-center gap-2">
+            <span className="inline-flex rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 font-mono text-[9px] text-red-200">C:{counts.critical}</span>
+            <span className="inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 font-mono text-[9px] text-amber-200">W:{counts.warning}</span>
+            <span className="inline-flex rounded-full border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 font-mono text-[9px] text-sky-200">I:{counts.info}</span>
+          </div>
+        }
+      >
         <div className="space-y-3">
-          {critical.map((m) => (
-            <div key={m.id + "-b"} className="flex items-center gap-3 rounded-xl border-l-4 border-red-500 bg-red-950/20 p-3">
-              <div className="text-xl">🚨</div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-semibold text-red-100">{m.name} — Breakdown</div>
-                  <div className="text-[10px] text-slate-500">{time.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}</div>
+          {pageItems.map((a) => {
+            const sevLbl = a.severity;
+            const left = a.severity === "CRITICAL" ? "border-red-500" : a.severity === "WARNING" ? "border-amber-400" : "border-sky-400";
+            const bg = a.severity === "CRITICAL" ? "bg-red-950/20" : a.severity === "WARNING" ? "bg-amber-950/10" : "bg-sky-950/10";
+            const badge =
+              a.severity === "CRITICAL"
+                ? "border-red-500/30 bg-red-500/10 text-red-200"
+                : a.severity === "WARNING"
+                  ? "border-amber-500/30 bg-amber-500/10 text-amber-200"
+                  : "border-sky-500/30 bg-sky-500/10 text-sky-200";
+            const icon = a.severity === "CRITICAL" ? "🚨" : a.severity === "WARNING" ? "⚠️" : "ℹ️";
+            const ts = new Date(a.ts).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+            return (
+              <div key={a.id} className={`flex items-center gap-3 rounded-xl border-l-4 ${left} ${bg} p-3`}>
+                <div className="text-xl">{icon}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex rounded-full border px-2 py-0.5 font-mono text-[9px] ${badge}`}>{sevLbl}</span>
+                        <div className="truncate text-sm font-semibold text-slate-200">{a.title}</div>
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-[10px] text-slate-500">{ts}</div>
+                  </div>
+                  <div className="mt-1 text-xs text-slate-400 break-words">{a.event} · {a.detail}</div>
                 </div>
-                <div className="mt-1 text-xs text-slate-400">OEE:{m.oee}% Avail:{Math.round(m.availability)}% Est.repair:{Math.round(m.repairTicksLeft)}s</div>
               </div>
-              <button className="rounded-lg border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1 text-[11px] text-slate-400 hover:text-slate-200">ACK</button>
-            </div>
-          ))}
+            );
+          })}
 
-          {warnings.map((m) => (
-            <div key={m.id + "-w"} className="flex items-center gap-3 rounded-xl border-l-4 border-amber-400 bg-amber-950/10 p-3">
-              <div className="text-xl">⚠️</div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-semibold text-amber-100">{m.name} — Low OEE ({m.oee}%)</div>
-                  <div className="text-[10px] text-slate-500">{time.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}</div>
-                </div>
-                <div className="mt-1 text-xs text-slate-400">Avail:{Math.round(m.availability)}% Perf:{Math.round(m.performance)}% Qual:{Math.round(m.quality)}%</div>
-              </div>
-              <button className="rounded-lg border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1 text-[11px] text-slate-400 hover:text-slate-200">ACK</button>
-            </div>
-          ))}
-
-          {qIssues.map((m) => (
-            <div key={m.id + "-q"} className="rounded-xl border-l-4 border-blue-400 bg-[var(--oee-surface-2)]/60 border border-[var(--oee-border)] p-3">
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-semibold text-blue-100">{m.name} — Quality below 95%</div>
-                <div className="text-[10px] text-slate-500">{time.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}</div>
-              </div>
-              <div className="mt-1 text-xs text-slate-400">Qual:{Math.round(m.quality)}% Scrap:{m.scrapCount} units</div>
-            </div>
-          ))}
-
-          {critical.length === 0 && warnings.length === 0 && qIssues.length === 0 && (
+          {alertLog.length === 0 && (
             <div className="rounded-xl border-l-4 border-emerald-400 bg-emerald-950/10 p-3 text-sm text-emerald-200">
-              ✓ No active alerts — All systems normal
+              No alerts logged yet
             </div>
           )}
-        </div>
-      </Card>
 
-      <Card title="📅 PM Schedule + Health">
-        <div className="space-y-2">
-          {[
-            { machine: "CNC-01", task: "Spindle Lubrication", due: "Mar 27", st: "upcoming" },
-            { machine: "Press-02", task: "Die Inspection", due: "Apr 01", st: "scheduled" },
-            { machine: "Lathe-03", task: "Bearing Replacement", due: "Today", st: "overdue" },
-            { machine: "Weld-04", task: "Electrode Cleaning", due: "Apr 05", st: "scheduled" },
-            { machine: "Assy-05", task: "Conveyor Check", due: "Mar 29", st: "upcoming" },
-          ].map((p, i) => {
-            const col = p.st === "overdue" ? "text-red-300" : p.st === "upcoming" ? "text-amber-300" : "text-emerald-300";
-            const badge = p.st === "overdue" ? "border-red-500/30 bg-red-500/10" : p.st === "upcoming" ? "border-amber-500/30 bg-amber-500/10" : "border-emerald-500/30 bg-emerald-500/10";
-            return (
-              <div key={i} className="flex items-center justify-between rounded-xl bg-[var(--oee-surface-2)]/60 border border-[var(--oee-border)] p-3">
-                <div>
-                  <div className="text-sm font-semibold text-slate-200">{p.machine}</div>
-                  <div className="text-xs text-slate-500">{p.task}</div>
-                </div>
-                <div className="text-right">
-                  <div className={"font-mono text-xs " + col}>{p.due}</div>
-                  <div className={"mt-1 inline-flex rounded-full border px-2 py-0.5 font-mono text-[10px] " + badge}>{p.st}</div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+          {alertLog.length > 0 && (
+            <div className="flex items-center justify-between gap-2 pt-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className={
+                  "rounded-lg border px-3 py-1.5 text-xs font-semibold " +
+                  (page <= 1
+                    ? "border-[var(--oee-border)] bg-[var(--oee-surface-2)]/30 text-slate-600 cursor-not-allowed"
+                    : "border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 text-slate-300 hover:text-slate-100")
+                }
+              >
+                ← Prev
+              </button>
 
-        <div className="mt-4 text-[10px] uppercase tracking-wider text-slate-500">MACHINE HEALTH INDEX</div>
-        <div className="mt-2 space-y-2">
-          {ms.map((m) => {
-            const col = m.oee >= 85 ? "#22c55e" : m.oee >= 70 ? "#f59e0b" : "#ef4444";
-            return (
-              <div key={m.id} className="flex items-center gap-3">
-                <div className="w-20 text-[11px] text-slate-400">{m.name}</div>
-                <div className="h-2 flex-1 rounded bg-[var(--oee-surface-2)]/60 border border-[var(--oee-border)]">
-                  <div className="h-2 rounded" style={{ width: `${m.oee}%`, background: col }} />
-                </div>
-                <div className="w-10 text-right font-mono text-[11px] font-bold" style={{ color: col }}>
-                  {m.oee}%
-                </div>
+              <div className="text-[11px] text-slate-500">
+                Page <span className="font-mono text-slate-200">{page}</span> / {totalPages}
               </div>
-            );
-          })}
+
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className={
+                  "rounded-lg border px-3 py-1.5 text-xs font-semibold " +
+                  (page >= totalPages
+                    ? "border-[var(--oee-border)] bg-[var(--oee-surface-2)]/30 text-slate-600 cursor-not-allowed"
+                    : "border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 text-slate-300 hover:text-slate-100")
+                }
+              >
+                Next →
+              </button>
+            </div>
+          )}
         </div>
       </Card>
     </div>

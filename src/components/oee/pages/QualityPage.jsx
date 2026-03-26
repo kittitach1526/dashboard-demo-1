@@ -44,7 +44,7 @@ export default function QualityPage() {
             { l: "FPY", v: `${kpi.qual}%`, c: "text-violet-200", big: true },
             { l: "Scrap Rate", v: `${(100 - kpi.qual).toFixed(1)}%`, c: "text-orange-200", big: true },
           ].map((k) => (
-            <div key={k.l} className="min-w-[140px] flex-1 rounded-xl border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 p-3">
+            <div key={k.l} className="w-full sm:min-w-[140px] flex-1 rounded-xl border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 p-3">
               <div className="text-[10px] text-slate-500">{k.l}</div>
               <div className={"mt-1 font-mono font-bold " + (k.big ? "text-2xl" : "text-lg") + " " + k.c}>{k.v}</div>
             </div>

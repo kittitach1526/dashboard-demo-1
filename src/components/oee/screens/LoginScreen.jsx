@@ -33,8 +33,8 @@ export default function LoginScreen({ onLogin }) {
         }}
       />
 
-      <div className="relative w-[400px] max-w-[95vw]">
-        <div className="bg-[var(--oee-surface)]/85 border border-[var(--oee-border-2)] rounded-2xl p-9 shadow-[0_24px_80px_rgba(0,0,0,0.75)]">
+      <div className="relative w-full max-w-[95vw] sm:w-[400px]">
+        <div className="bg-[var(--oee-surface)]/85 border border-[var(--oee-border-2)] rounded-2xl p-6 sm:p-9 shadow-[0_24px_80px_rgba(0,0,0,0.75)]">
           <div className="flex flex-col items-center mb-6">
             <img
               src={`data:image/png;base64,${LOGO_B64}`}
@@ -93,7 +93,7 @@ export default function LoginScreen({ onLogin }) {
 
           <div className="mt-4 rounded-lg bg-[var(--oee-surface-2)]/60 border border-[var(--oee-border)] p-3">
             <div className="text-[9px] text-slate-500 mb-2 tracking-wider">DEMO ACCOUNTS</div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {USERS.map((us) => (
                 <button
                   key={us.id}

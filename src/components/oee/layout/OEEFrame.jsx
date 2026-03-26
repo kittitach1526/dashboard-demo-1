@@ -10,7 +10,6 @@ import RefreshSelector from "@/components/oee/ui/RefreshSelector";
 import ExportModal from "@/components/oee/modals/ExportModal";
 import ShiftModal from "@/components/oee/modals/ShiftModal";
 import DataEntryModal from "@/components/oee/modals/DataEntryModal";
-import { getActiveShift } from "@/lib/oee/derived";
 
 export default function OEEFrame({ children }) {
   const router = useRouter();
@@ -20,6 +19,7 @@ export default function OEEFrame({ children }) {
   const [showExport, setShowExport] = useState(false);
   const [showShift, setShowShift] = useState(false);
   const [showEntry, setShowEntry] = useState(false);
+  const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
 
   useEffect(() => {
     if (!user) router.replace("/login");
@@ -29,7 +29,11 @@ export default function OEEFrame({ children }) {
 
   const allowed = ROLE_ACCESS[user.role] || ["overview"];
 
-  const activeShift = getActiveShift(shifts, time);
+  const dayShift =
+    shifts.find((s) => s.active && s.id === 1) ||
+    shifts.find((s) => s.active && (s.start === "06:00" || s.name.toLowerCase().includes("day"))) ||
+    shifts.find((s) => s.active) ||
+    null;
 
   const tabs = [
     { key: "overview", label: "Overview", icon: "⬡" },
@@ -69,13 +73,13 @@ export default function OEEFrame({ children }) {
               <span className="text-violet-400">{kpi.qual}</span>
             </div>
 
-            {activeShift && (
+            {dayShift && (
               <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2 py-0.5 font-mono text-[9px] text-sky-200">
-                {activeShift.name} · {activeShift.start}–{activeShift.end}
+                {dayShift.name} · {dayShift.start}–{dayShift.end}
               </span>
             )}
 
-            <div className="min-w-[180px] rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1 text-center font-mono text-[11px] text-sky-300">
+            <div className="w-full sm:w-auto sm:min-w-[180px] rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1 text-center font-mono text-[10px] sm:text-[11px] text-sky-300">
               {time.toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" })}{" "}
               {time.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
             </div>
@@ -100,6 +104,18 @@ export default function OEEFrame({ children }) {
                 📤 Export
               </button>
               <RefreshSelector interval={refreshInt} onChange={setRefreshInt} />
+            </div>
+
+            <div className="md:hidden">
+              <button
+                onClick={() => setMobileActionsOpen((v) => !v)}
+                className="rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1 text-[11px] font-semibold text-slate-300 hover:text-slate-100"
+                aria-expanded={mobileActionsOpen}
+                aria-controls="oee-mobile-actions"
+                title="Actions"
+              >
+                ⋯
+              </button>
             </div>
 
             <div className="flex items-center gap-2 rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1">
@@ -128,6 +144,46 @@ export default function OEEFrame({ children }) {
             </div>
           </div>
         </div>
+
+        {mobileActionsOpen && (
+          <div
+            id="oee-mobile-actions"
+            className="md:hidden mt-2 rounded-xl border border-[var(--oee-border)] bg-[var(--oee-surface)]/70 p-2"
+          >
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => {
+                  setShowEntry(true);
+                  setMobileActionsOpen(false);
+                }}
+                className="flex-1 rounded-md border border-sky-500/20 bg-sky-500/10 px-2 py-2 text-[11px] font-semibold text-sky-200"
+              >
+                📝 Data Entry
+              </button>
+              <button
+                onClick={() => {
+                  setShowShift(true);
+                  setMobileActionsOpen(false);
+                }}
+                className="flex-1 rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 px-2 py-2 text-[11px] font-semibold text-slate-300 hover:text-slate-100"
+              >
+                ⏰ Shift
+              </button>
+              <button
+                onClick={() => {
+                  setShowExport(true);
+                  setMobileActionsOpen(false);
+                }}
+                className="flex-1 rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 px-2 py-2 text-[11px] font-semibold text-slate-300 hover:text-slate-100"
+              >
+                📤 Export
+              </button>
+              <div className="w-full">
+                <RefreshSelector interval={refreshInt} onChange={setRefreshInt} />
+              </div>
+            </div>
+          </div>
+        )}
 
         <nav className="mt-2 flex items-center gap-1 overflow-x-auto border-t border-[var(--oee-border)]/70 pt-2">
           {tabs.map((t) => {

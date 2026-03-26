@@ -47,7 +47,7 @@ export default function DataEntryModal({ machines, shifts, onSave, onClose }) {
     <button
       onClick={() => setTab(k)}
       className={
-        "flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition " +
+        "w-full sm:flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition " +
         (tab === k
           ? "bg-[var(--oee-surface-2)]/70 text-sky-200"
           : "bg-transparent text-slate-400 hover:bg-[var(--oee-surface-2)]/40")
@@ -63,7 +63,7 @@ export default function DataEntryModal({ machines, shifts, onSave, onClose }) {
   return (
     <ModalShell title="📝 กรอกข้อมูลการผลิต" onClose={onClose} widthClass="w-[720px]">
       <div className="space-y-4">
-        <div className="flex gap-2 rounded-xl border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 p-2">
+        <div className="flex flex-wrap gap-2 rounded-xl border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 p-2">
           <TabBtn k="production" label="📦 ข้อมูลการผลิต" />
           <TabBtn k="downtime" label="⚠️ บันทึก Downtime" />
           <TabBtn k="quality" label="✅ ข้อมูลคุณภาพ" />
