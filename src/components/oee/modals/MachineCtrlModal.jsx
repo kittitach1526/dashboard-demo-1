@@ -23,13 +23,52 @@ export default function MachineCtrlModal({ machine, onUpdate, onClose }) {
   const currentManualStatus = ms.forcedStatus || ms.status;
 
   const apply = () => {
-    onUpdate({ 
-      ...ms, 
-      baseAvail: aBase, 
-      basePerf: pBase, 
-      baseQual: qBase, 
-      forcedStatus: isManual ? ms.forcedStatus : null 
-    });
+    console.log('Apply clicked - isManual:', isManual);
+    console.log('Values:', { aBase, pBase, qBase, forcedStatus: ms.forcedStatus });
+    
+    if (isManual) {
+      // Manual mode: ใช้ค่าที่ตั้งไว้และสถานะที่เลือก และค่าที่คำนวณจาก slider
+      const updateData = { 
+        ...ms,
+        baseAvail: aBase, 
+        basePerf: pBase, 
+        baseQual: qBase, 
+        forcedStatus: ms.forcedStatus || currentManualStatus,
+        // ใช้ค่าจาก slider โดยตรง
+        availability: aBase,
+        performance: pBase,
+        quality: qBase,
+        oee: ((aBase / 100) * (pBase / 100) * (qBase / 100) * 100).toFixed(1),
+        // ล็อคค่าไว้ไม่ให้เปลี่ยน
+        speed: 0,
+        repairTicksLeft: 0
+      };
+      console.log('Manual update data:', updateData);
+      onUpdate(updateData);
+    } else {
+      // Auto mode: ใช้ค่าสุ่มและไม่มี forcedStatus
+      const randomAvail = Math.floor(Math.random() * 40) + 60;
+      const randomPerf = Math.floor(Math.random() * 40) + 60;
+      const randomQual = Math.floor(Math.random() * 40) + 60;
+      const updateData = { 
+        id: ms.id,
+        name: ms.name,
+        line: ms.line,
+        baseAvail: randomAvail,
+        basePerf: randomPerf,
+        baseQual: randomQual,
+        forcedStatus: null,
+        // ใช้ค่าสุ่มโดยตรง
+        availability: randomAvail,
+        performance: randomPerf,
+        quality: randomQual,
+        oee: ((randomAvail / 100) * (randomPerf / 100) * (randomQual / 100) * 100).toFixed(1),
+        // เปิดให้ระบบทำงาน
+        speed: 1
+      };
+      console.log('Auto update data:', updateData);
+      onUpdate(updateData);
+    }
     onClose();
   };
 

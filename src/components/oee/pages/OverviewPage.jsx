@@ -213,23 +213,33 @@ export default function OverviewPage() {
 
       <div className="grid grid-cols-1 gap-3 xl:grid-cols-3">
         <Card title="⚙ Machine Status Board" right={<span className="text-[11px] text-slate-500">คลิกชื่อเพื่อดูรายละเอียด</span>}>
-          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+          <div className="space-y-3">
             {ms.map((m) => {
               const stCol = m.status === "running" ? "#22c55e" : m.status === "idle" ? "#f59e0b" : "#ef4444";
               return (
                 <div
                   key={m.id}
-                  className={
-                    "rounded-xl border p-3 transition " +
-                    (m.status === "breakdown"
-                      ? "border-red-500/20 bg-red-950/20"
+                  className="rounded-xl border-2 p-4 transition"
+                  style={{
+                    borderColor: m.status === "breakdown" 
+                      ? "rgba(239, 68, 68, 0.5)" 
+                      : m.status === "idle" 
+                        ? "rgba(245, 158, 11, 0.5)" 
+                        : "rgba(34, 197, 94, 0.5)",
+                    backgroundColor: m.status === "breakdown"
+                      ? "rgba(239, 68, 68, 0.25)"
                       : m.status === "idle"
-                        ? "border-amber-500/20 bg-amber-950/10"
-                        : "border-emerald-500/10 bg-emerald-950/10")
-                  }
+                        ? "rgba(245, 158, 11, 0.25)"
+                        : "rgba(34, 197, 94, 0.25)",
+                    boxShadow: m.status === "breakdown"
+                      ? "0 0 30px rgba(239, 68, 68, 0.3)"
+                      : m.status === "idle"
+                        ? "0 0 30px rgba(245, 158, 11, 0.3)"
+                        : "0 0 30px rgba(34, 197, 94, 0.3)"
+                  }}
                 >
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <button onClick={() => setSelectedM(m)} className="text-left text-sm font-bold hover:underline">
+                  <div className="mb-3 flex items-center justify-between gap-2">
+                    <button onClick={() => setSelectedM(m)} className="text-left text-base font-bold hover:underline">
                       {m.name}
                     </button>
                     <div className="flex items-center gap-2">
@@ -237,6 +247,23 @@ export default function OverviewPage() {
                         <StatusDot status={m.status} />
                         {m.status.slice(0, 3).toUpperCase()}
                       </Badge>
+                      <div 
+                        className="rounded-full border px-2 py-0.5 text-[9px] font-bold flex items-center gap-1.5"
+                        style={{
+                          borderColor: m.forcedStatus ? '#3b82f6' : '#64748b',
+                          backgroundColor: m.forcedStatus ? '#3b82f620' : '#64748b20',
+                          color: m.forcedStatus ? '#3b82f6' : '#64748b'
+                        }}
+                      >
+                        <span 
+                          className="w-2 h-2 rounded-full shadow-sm" 
+                          style={{
+                            backgroundColor: m.forcedStatus ? '#3b82f6' : '#64748b',
+                            boxShadow: `0 0 4px ${m.forcedStatus ? '#3b82f6' : '#64748b'}80`
+                          }}
+                        ></span>
+                        {m.forcedStatus ? "MANUAL" : "AUTO"}
+                      </div>
                       <button
                         onClick={() => setCtrlM(m)}
                         className="rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 px-2 py-1 text-[11px] text-slate-400 hover:text-slate-200"
@@ -246,8 +273,8 @@ export default function OverviewPage() {
                     </div>
                   </div>
 
-                  <div className="flex gap-3">
-                    <div>
+                  <div className="flex items-center gap-6">
+                    <div className="text-center">
                       <div
                         className={
                           "font-mono text-2xl font-extrabold " +
@@ -256,27 +283,34 @@ export default function OverviewPage() {
                       >
                         {m.oee}%
                       </div>
-                      <div className="text-[10px] text-slate-500">OEE</div>
+                      <div className="text-[9px] text-slate-500">OEE</div>
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 space-y-2">
                       {[
-                        ["A", m.availability, "#22c55e"],
-                        ["P", m.performance, "#f59e0b"],
-                        ["Q", m.quality, "#a78bfa"],
-                      ].map(([l, v, c]) => (
-                        <div key={l} className="mb-2">
-                          <div className="mb-1 flex items-center justify-between font-mono text-[10px]">
-                            <span className="text-slate-500">{l}</span>
-                            <span style={{ color: c }}>{Math.round(v)}%</span>
+                        ["Availability", m.availability, "#22c55e"],
+                        ["Performance", m.performance, "#f59e0b"],
+                        ["Quality", m.quality, "#a78bfa"],
+                      ].map(([label, val, color]) => (
+                        <div key={label} className="flex items-center gap-3">
+                          <div className="w-20 text-[10px] text-slate-500">{label}</div>
+                          <div className="flex-1">
+                            <MiniBar pct={val} color={color} />
                           </div>
-                          <MiniBar pct={v} color={c} />
+                          <div className="w-12 text-right font-mono text-sm font-bold" style={{ color }}>
+                            {Math.round(val)}%
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  <div className="mt-2 text-[11px] text-slate-500">
-                    L{m.line} · Good {m.goodCount.toLocaleString()}/{m.totalCount.toLocaleString()}
+                  <div className="mt-3 pt-3 border-t border-[var(--oee-border)] flex justify-between items-center">
+                    <div className="text-[11px] text-slate-500">
+                      Line {m.line} · Good {m.goodCount.toLocaleString()}/{m.totalCount.toLocaleString()}
+                    </div>
+                    <div className="text-[11px] text-slate-500">
+                      Scrap: {(m.totalCount - m.goodCount).toLocaleString()}
+                    </div>
                   </div>
                 </div>
               );

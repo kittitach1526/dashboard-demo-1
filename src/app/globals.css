@@ -2,11 +2,15 @@
 
 :root {
   --background: #070d19;
-  --foreground: #e2e8f0;
+  --foreground: #f1f5f9;
   --oee-surface: #0f1e33;
   --oee-surface-2: #0a1220;
   --oee-border: #1e293b;
   --oee-border-2: #1e3a5f;
+  --oee-text-heading: #f8fafc;
+  --oee-text-body: #e2e8f0;
+  --oee-text-muted: #94a3b8;
+  --oee-text-subtle: #64748b;
 }
 
 @theme inline {
@@ -19,8 +23,21 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #070d19;
-    --foreground: #e2e8f0;
+    --foreground: #f1f5f9;
   }
+}
+
+/* Global text color improvements */
+.text-slate-500 {
+  color: #cbd5e1 !important;
+}
+
+.text-slate-400 {
+  color: #d1d5db !important;
+}
+
+.text-slate-300 {
+  color: #f3f4f6 !important;
 }
 
 body {

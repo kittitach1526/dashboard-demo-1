@@ -46,10 +46,44 @@ export function tickMachine(m, dtSec) {
     failRate,
     repairMin,
     repairMax,
+    speed,
   } = m;
 
   const dtMin = dtSec / 60;
 
+  // ถ้า speed = 0 แสดงว่าเป็น MANUAL mode ให้ใช้ค่าคงที่
+  if (speed === 0) {
+    // MANUAL mode: ใช้ค่าจาก baseAvail, basePerf, baseQual โดยตรง
+    const runMins = Math.round(plannedMins * (baseAvail / 100));
+    const downMins = plannedMins - runMins;
+    const total = Math.max(0, Math.round((runMins / idealCT) * (basePerf / 100)));
+    const good = Math.round(total * (baseQual / 100));
+    const oeeVal = Math.round(baseAvail * basePerf * baseQual) / 10000;
+    const oeeR = Math.round(oeeVal * 10) / 10;
+
+    return {
+      ...m,
+      status: forcedStatus || status,
+      availability: baseAvail,
+      performance: basePerf,
+      quality: baseQual,
+      oee: oeeR,
+      runMins,
+      downtimeMins: downMins,
+      totalCount: total,
+      goodCount: good,
+      scrapCount: total - good,
+      downReasons: {
+        mechanical: Math.round(downMins * 0.38),
+        material: Math.round(downMins * 0.26),
+        changeover: Math.round(downMins * 0.2),
+        operator: Math.round(downMins * 0.11),
+        quality: Math.round(downMins * 0.05),
+      },
+    };
+  }
+
+  // AUTO mode: ทำงานแบบสุ่มตามเดิม
   if (forcedStatus) status = forcedStatus;
   else {
     if (status === "running") {

@@ -10,6 +10,7 @@ import RefreshSelector from "@/components/oee/ui/RefreshSelector";
 import ExportModal from "@/components/oee/modals/ExportModal";
 import ShiftModal from "@/components/oee/modals/ShiftModal";
 import DataEntryModal from "@/components/oee/modals/DataEntryModal";
+import UserSettingsModal from "@/components/oee/modals/UserSettingsModal";
 
 export default function OEEFrame({ children }) {
   const router = useRouter();
@@ -19,6 +20,8 @@ export default function OEEFrame({ children }) {
   const [showExport, setShowExport] = useState(false);
   const [showShift, setShowShift] = useState(false);
   const [showEntry, setShowEntry] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showUserSettings, setShowUserSettings] = useState(false);
   const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -183,52 +186,73 @@ export default function OEEFrame({ children }) {
                 </button>
               )}
 
+              <div className="hidden lg:flex items-center gap-2">
+                <RefreshSelector interval={refreshInt} onChange={setRefreshInt} />
+              </div>
+
               <div className="w-full sm:w-auto sm:min-w-[180px] rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1 text-center font-mono text-[10px] sm:text-[11px] text-sky-300">
                 {time.toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" })}{" "}
                 {time.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
               </div>
 
-              <div className="hidden lg:flex items-center gap-2">
+              <div className="relative">
                 <button
-                  onClick={() => setShowShift(true)}
-                  className="rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 px-2 py-1 text-[11px] font-semibold text-slate-300 hover:text-slate-100 flex items-center gap-1"
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-2 rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1 hover:bg-[var(--oee-surface-2)] transition-colors"
                 >
-                  {dayShift && (
-                    <span 
-                      className="w-2 h-2 rounded-full" 
-                      style={{
-                        backgroundColor: dayShift.color || '#3b82f6'
-                      }}
-                    ></span>
-                  )}
-                  ⏰ Shift
-                </button>
-                <RefreshSelector interval={refreshInt} onChange={setRefreshInt} />
-              </div>
-
-              <div className="flex items-center gap-2 rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1">
-                <div
-                  className="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--oee-border)] text-[10px] font-bold"
-                  style={{
-                    background: `${ROLE_COLOR[user.role]}25`,
-                    color: ROLE_COLOR[user.role],
-                  }}
-                >
-                  {user.avatar}
-                </div>
-                <div className="leading-tight">
-                  <div className="text-[10px] font-semibold">{user.name}</div>
-                  <div className="text-[8px] uppercase" style={{ color: ROLE_COLOR[user.role] }}>
-                    {user.role}
+                  <div
+                    className="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--oee-border)] text-[10px] font-bold"
+                    style={{
+                      background: `${ROLE_COLOR[user.role]}25`,
+                      color: ROLE_COLOR[user.role],
+                    }}
+                  >
+                    {user.avatar}
                   </div>
-                </div>
-                <button
-                  onClick={() => setUser(null)}
-                  className="ml-1 rounded px-1 text-slate-500 hover:bg-slate-700/50 hover:text-slate-300"
-                  title="Sign out"
-                >
-                  ⏻
+                  <div className="leading-tight">
+                    <div className="text-[10px] font-semibold">{user.name}</div>
+                    <div className="text-[8px] uppercase" style={{ color: ROLE_COLOR[user.role] }}>
+                      {user.role}
+                    </div>
+                  </div>
+                  <div className="ml-1 text-slate-500">
+                    {showUserMenu ? "▲" : "▼"}
+                  </div>
                 </button>
+
+                {showUserMenu && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={() => setShowUserMenu(false)}
+                    />
+                    <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-[var(--oee-border)] bg-[var(--oee-surface)] shadow-xl z-50">
+                      <div className="p-2 space-y-1">
+                        <button
+                          onClick={() => {
+                            setShowUserMenu(false);
+                            setShowUserSettings(true);
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm text-slate-300 hover:bg-slate-700/50 transition-colors"
+                        >
+                          <span>⚙️</span>
+                          <span>User Settings</span>
+                        </button>
+                        <div className="border-t border-[var(--oee-border)] my-1" />
+                        <button
+                          onClick={() => {
+                            setShowUserMenu(false);
+                            setUser(null);
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm text-red-400 hover:bg-red-950/20 transition-colors"
+                        >
+                          <span>⏻</span>
+                          <span>Logout</span>
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="md:hidden">
@@ -299,6 +323,13 @@ export default function OEEFrame({ children }) {
         />
       )}
       {showExport && <ExportModal onClose={() => setShowExport(false)} machines={ms} kpi={kpi} />}
+      {showUserSettings && (
+        <UserSettingsModal
+          user={{ ...user, roleColor: ROLE_COLOR[user.role] }}
+          onUpdate={(updatedUser) => setUser(updatedUser)}
+          onClose={() => setShowUserSettings(false)}
+        />
+      )}
     </div>
   );
 }
