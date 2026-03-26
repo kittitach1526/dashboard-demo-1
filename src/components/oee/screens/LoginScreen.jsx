@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { LOGO_B64, USERS, ROLE_COLOR } from "@/lib/oee/constants";
+import { USERS, ROLE_COLOR } from "@/lib/oee/constants";
 
 export default function LoginScreen({ onLogin }) {
   const [u, setU] = useState("");
@@ -37,9 +37,9 @@ export default function LoginScreen({ onLogin }) {
         <div className="bg-[var(--oee-surface)]/85 border border-[var(--oee-border-2)] rounded-2xl p-6 sm:p-9 shadow-[0_24px_80px_rgba(0,0,0,0.75)]">
           <div className="flex flex-col items-center mb-6">
             <img
-              src={`data:image/png;base64,${LOGO_B64}`}
+              src="/Logo.png"
               alt="FOSTEC"
-              className="h-11 object-contain mb-2 brightness-110"
+              className="h-16 object-contain mb-3"
             />
             <div className="text-[10px] tracking-[0.18em] text-slate-500 uppercase font-mono">OEE Monitor Platform</div>
           </div>
