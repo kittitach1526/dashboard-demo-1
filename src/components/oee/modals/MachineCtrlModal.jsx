@@ -1,123 +1,166 @@
 "use client";
 
 import { useState } from "react";
-
 import ModalShell from "@/components/oee/modals/ModalShell";
 
 export default function MachineCtrlModal({ machine, onUpdate, onClose }) {
   const [ms, setMs] = useState({ ...machine });
-  const [aBase, setABase] = useState(machine.baseAvail);
-  const [pBase, setPBase] = useState(machine.basePerf);
-  const [qBase, setQBase] = useState(machine.baseQual);
+  const [aBase, setABase] = useState(machine.baseAvail || 78);
+  const [pBase, setPBase] = useState(machine.basePerf || 78);
+  const [qBase, setQBase] = useState(machine.baseQual || 78);
+  const [isManual, setIsManual] = useState(ms.forcedStatus ? true : false);
 
   const apply = () => {
-    onUpdate({ ...ms, baseAvail: aBase, basePerf: pBase, baseQual: qBase, forcedStatus: ms.forcedStatus });
+    onUpdate({ 
+      ...ms, 
+      baseAvail: aBase, 
+      basePerf: pBase, 
+      baseQual: qBase, 
+      forcedStatus: isManual ? ms.forcedStatus : null 
+    });
     onClose();
   };
 
   const statusBtns = [
-    ["running", "▶ RUN", "#22c55e"],
-    ["idle", "⏸ IDLE", "#f59e0b"],
-    ["breakdown", "■ DOWN", "#ef4444"],
+    { id: "running", label: "RUN", icon: "▶️", color: "#10b981" },
+    { id: "idle", label: "IDLE", icon: "⏸️", color: "#f59e0b" },
+    { id: "breakdown", label: "STOP", icon: "⛔", color: "#ef4444" },
   ];
 
+  const oeePreview = ((aBase / 100) * (pBase / 100) * (qBase / 100) * 100).toFixed(1);
+
+  const rangeStyles = `
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      background: transparent;
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      margin: 0;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #ffffff;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(255,255,255,0.8);
+      border: 3px solid #0f172a;
+      position: relative;
+      z-index: 30;
+    }
+  `;
+
   return (
-    <ModalShell title={`⚙ ${ms.name} — Line ${ms.line}`} onClose={onClose} widthClass="w-[480px]">
-      <div className="space-y-4">
-        <div>
-          <div className="mb-2 text-[11px] font-semibold text-slate-400">🎮 จำลองสถานะเครื่องจักร</div>
-          <div className="flex gap-2">
-            {statusBtns.map(([st, lbl, col]) => {
-              const active = ms.forcedStatus === st;
-              return (
-                <button
-                  key={st}
-                  onClick={() =>
-                    setMs((p) => ({
-                      ...p,
-                      forcedStatus: p.forcedStatus === st ? null : st,
-                      status: p.forcedStatus === st ? p.status : st,
-                    }))
-                  }
-                  className="flex-1 rounded-xl border-2 px-2 py-2 text-xs font-semibold transition"
-                  style={{
-                    borderColor: active ? col : `${col}40`,
-                    background: active ? `${col}25` : "transparent",
-                    color: active ? col : `${col}AA`,
-                  }}
-                >
-                  {lbl}
-                </button>
-              );
-            })}
-          </div>
-          {ms.forcedStatus ? (
-            <div className="mt-2 text-center text-xs text-amber-300">
-              ⚠ Manual override: <span className="font-bold">{ms.forcedStatus.toUpperCase()}</span>
-            </div>
-          ) : (
-            <div className="mt-2 text-center text-xs text-emerald-300">✓ Auto-simulate mode</div>
-          )}
+    <ModalShell title={`⚙️ ${ms.name}`} onClose={onClose} widthClass="w-[440px]">
+      <style>{rangeStyles}</style>
+      
+      <div className="space-y-5 p-1 relative">
+        
+        {/* 1. Mode Selector (Top Right) */}
+        <div className="absolute -top-12 right-0 flex bg-slate-800/80 p-0.5 rounded-lg border border-white/5 scale-90">
+          <button 
+            onClick={() => { setIsManual(false); setMs(prev => ({ ...prev, forcedStatus: null })); }}
+            className={`px-3 py-1 text-[9px] font-bold rounded-md transition-all ${!isManual ? "bg-blue-600 text-white shadow-md" : "text-slate-500"}`}
+          >
+            AUTO
+          </button>
+          <button 
+            onClick={() => setIsManual(true)}
+            className={`px-3 py-1 text-[9px] font-bold rounded-md transition-all ${isManual ? "bg-blue-600 text-white shadow-md" : "text-slate-500"}`}
+          >
+            MANUAL
+          </button>
         </div>
 
-        <div className="rounded-xl bg-[var(--oee-surface-2)]/60 border border-[var(--oee-border)] p-3">
-          <div className="mb-2 text-[11px] font-semibold text-slate-400">📊 ปรับค่าพื้นฐาน (Base Values)</div>
-          {["Availability", "Performance", "Quality"].map((label, idx) => {
-            const val = idx === 0 ? aBase : idx === 1 ? pBase : qBase;
-            const set = idx === 0 ? setABase : idx === 1 ? setPBase : setQBase;
-            const col = idx === 0 ? "#22c55e" : idx === 1 ? "#f59e0b" : "#a78bfa";
+        {/* 2. Status Buttons */}
+        <div className="grid grid-cols-3 gap-2">
+          {statusBtns.map((st) => {
+            const active = ms.forcedStatus === st.id;
             return (
-              <div key={label} className="mb-3">
-                <div className="mb-1 flex items-center justify-between">
-                  <div className="text-xs text-slate-300">{label} Base</div>
-                  <div className="font-mono text-sm font-bold" style={{ color: col }}>
-                    {val}%
-                  </div>
-                </div>
-                <input
-                  type="range"
-                  min="20"
-                  max="99"
-                  step="1"
-                  value={val}
-                  onChange={(e) => set(Number(e.target.value))}
-                  className="w-full"
-                  style={{ accentColor: "#0ea5e9" }}
-                />
-              </div>
+              <button
+                key={st.id}
+                disabled={!isManual}
+                onClick={() => setMs(prev => ({ ...prev, forcedStatus: st.id }))}
+                className={`flex flex-col items-center py-3 rounded-xl border-2 transition-all ${
+                  active ? "scale-105" : "opacity-30 grayscale"
+                } ${!isManual ? "cursor-not-allowed" : "hover:opacity-100"}`}
+                style={{
+                  borderColor: active ? st.color : "transparent",
+                  backgroundColor: active ? `${st.color}15` : "#1e293b50",
+                }}
+              >
+                <span className="text-xl mb-1">{st.icon}</span>
+                <span className="text-[10px] font-black" style={{ color: active ? st.color : "#94a3b8" }}>{st.label}</span>
+              </button>
             );
           })}
-
-          <div className="rounded-lg bg-[var(--oee-surface)]/70 border border-[var(--oee-border)] p-2 text-center font-mono text-xs">
-            <span className="font-bold text-sky-300">OEE Preview: {Math.round((aBase * pBase * qBase) / 100) / 100}%</span>
-          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-xl bg-[var(--oee-surface-2)]/60 border border-[var(--oee-border)] p-3">
-            <div className="text-[10px] text-slate-500">CURRENT OEE</div>
-            <div className="font-mono text-xl font-bold text-sky-400">{ms.oee || machine.oee}%</div>
+        {/* 3. Sliders Area (Relative Scaling) */}
+        <div className="bg-[#0f172a]/60 rounded-2xl p-5 space-y-6 border border-white/5">
+          
+          {/* Availability */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-end px-1">
+              <span className="text-[9px] font-bold text-slate-500 tracking-widest uppercase">Availability</span>
+              <span className="text-md font-mono font-bold text-orange-500">{aBase}%</span>
+            </div>
+            <div className="relative h-1.5 bg-slate-800 rounded-full">
+              <div className="absolute h-full bg-orange-500 rounded-full" style={{ width: `${aBase}%` }} />
+              <input type="range" min="0" max="100" value={aBase} onChange={(e) => setABase(Number(e.target.value))} />
+            </div>
           </div>
-          <div className="rounded-xl bg-[var(--oee-surface-2)]/60 border border-[var(--oee-border)] p-3">
-            <div className="text-[10px] text-slate-500">GOOD / TOTAL</div>
-            <div className="font-mono text-base font-bold text-emerald-400">
-              {(ms.goodCount || 0).toLocaleString()}/{(ms.totalCount || 0).toLocaleString()}
+
+          {/* Performance */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-end px-1">
+              <span className="text-[9px] font-bold text-slate-500 tracking-widest uppercase">Performance</span>
+              <span className="text-md font-mono font-bold text-yellow-400">{pBase}%</span>
+            </div>
+            <div className="relative h-1.5 bg-slate-800/50 rounded-full">
+              <div className="absolute h-full bg-slate-700/30 rounded-full" style={{ width: `${aBase}%` }} />
+              <div className="absolute h-full bg-yellow-400 rounded-full" style={{ width: `${(pBase * aBase) / 100}%` }} />
+              <div className="absolute top-[-6px] h-4" style={{ width: `${aBase}%` }}>
+                <input type="range" min="0" max="100" value={pBase} onChange={(e) => setPBase(Number(e.target.value))} />
+              </div>
+            </div>
+          </div>
+
+          {/* Quality */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-end px-1">
+              <span className="text-[9px] font-bold text-slate-500 tracking-widest uppercase">Quality</span>
+              <span className="text-md font-mono font-bold text-blue-500">{qBase}%</span>
+            </div>
+            <div className="relative h-1.5 bg-slate-800/50 rounded-full">
+              <div className="absolute h-full bg-slate-700/30 rounded-full" style={{ width: `${(pBase * aBase) / 100}%` }} />
+              <div className="absolute h-full bg-blue-500 rounded-full" style={{ width: `${(qBase * pBase * aBase) / 10000}%` }} />
+              <div className="absolute top-[-6px] h-4" style={{ width: `${(pBase * aBase) / 100}%` }}>
+                <input type="range" min="0" max="100" value={qBase} onChange={(e) => setQBase(Number(e.target.value))} />
+              </div>
+            </div>
+          </div>
+
+          {/* OEE Preview (Large Display) */}
+          <div className="pt-4 border-t border-white/5 text-center">
+            <div className="text-[9px] text-slate-500 tracking-widest mb-1">OEE PREVIEW</div>
+            <div className="text-4xl font-black text-emerald-400 font-mono italic">
+              {oeePreview}<span className="text-lg ml-0.5 not-italic opacity-40">%</span>
             </div>
           </div>
         </div>
 
+        {/* Action Buttons */}
         <div className="flex gap-2">
-          <button
-            onClick={onClose}
-            className="flex-1 rounded-lg border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/40 px-3 py-2 text-sm text-slate-400 hover:text-slate-200"
-          >
-            ยกเลิก
+          <button onClick={onClose} className="flex-1 py-3 rounded-xl bg-slate-800 text-slate-400 text-[10px] font-bold uppercase">
+            Cancel
           </button>
-          <button
-            onClick={apply}
-            className="flex-[2] rounded-lg bg-gradient-to-br from-sky-500 to-indigo-500 px-3 py-2 text-sm font-bold text-white"
-          >
-            ✓ Apply การตั้งค่า
+          <button onClick={apply} className="flex-[2] py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-[10px] uppercase shadow-lg shadow-blue-900/20">
+            Confirm Update
           </button>
         </div>
       </div>

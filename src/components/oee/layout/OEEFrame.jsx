@@ -20,6 +20,8 @@ export default function OEEFrame({ children }) {
   const [showShift, setShowShift] = useState(false);
   const [showEntry, setShowEntry] = useState(false);
   const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     if (!user) router.replace("/login");
@@ -37,8 +39,8 @@ export default function OEEFrame({ children }) {
 
   const tabs = [
     { key: "overview", label: "Overview", icon: "⬡" },
-    { key: "equipment", label: "Equipment", icon: "⚙️" },
-    { key: "availability", label: "Availability", icon: "⏱" },
+    { key: "equipment", label: "Equipment", icon: "🏭" },
+    { key: "availability", label: "Availability", icon: "⏱️" },
     { key: "performance", label: "Performance", icon: "🚀" },
     { key: "quality", label: "Quality", icon: "✅" },
     { key: "analytics", label: "Analytics", icon: "📈" },
@@ -47,172 +49,245 @@ export default function OEEFrame({ children }) {
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <header className="sticky top-0 z-20 border-b border-[var(--oee-border)] bg-gradient-to-r from-[#0b1426] via-[#0d1b35] to-[#0b1426] px-4 py-2">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="text-sm font-bold tracking-tight">OEE Monitor</div>
-            <div className="hidden sm:block h-5 w-px bg-[var(--oee-border)]" />
-            <div className="hidden sm:block text-[10px] uppercase tracking-[0.12em] text-slate-500">Factory Intelligence</div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="text-[10px]">
-              <span className="text-emerald-400"> {ms.filter((m) => m.status === "running").length} Run</span>
-              <span className="ml-2 text-red-400"> {ms.filter((m) => m.status === "breakdown").length} Down</span>
-              <span className="ml-2 text-amber-400"> {ms.filter((m) => m.status === "idle").length} Idle</span>
-            </div>
-
-            <div className="rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1 font-mono text-[10px]">
-              <span className="font-bold text-sky-400">{kpi.oee}%</span>
-              <span className="mx-1 text-slate-700">=</span>
-              <span className="text-emerald-400">{kpi.avail}</span>
-              <span className="text-slate-700">×</span>
-              <span className="text-amber-400">{kpi.perf}</span>
-              <span className="text-slate-700">×</span>
-              <span className="text-violet-400">{kpi.qual}</span>
-            </div>
-
-            {dayShift && (
-              <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2 py-0.5 font-mono text-[9px] text-sky-200">
-                {dayShift.name} · {dayShift.start}–{dayShift.end}
-              </span>
-            )}
-
-            <div className="w-full sm:w-auto sm:min-w-[180px] rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1 text-center font-mono text-[10px] sm:text-[11px] text-sky-300">
-              {time.toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" })}{" "}
-              {time.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-            </div>
-
-            <div className="hidden md:flex items-center gap-2">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex">
+      {/* Sidebar */}
+      <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:fixed inset-y-0 left-0 z-30 ${sidebarCollapsed ? 'lg:w-16' : 'lg:w-64'} border-r border-[var(--oee-border)] bg-gradient-to-b from-[#0b1426] to-[#0d1b35] transition-all duration-300 ease-in-out h-screen`}>
+        <div className="flex h-full flex-col">
+          {/* Sidebar Header */}
+          <div className="flex items-center justify-between p-4 border-b border-[var(--oee-border)]">
+            <div className={`${sidebarCollapsed ? 'lg:flex' : 'lg:hidden'} hidden items-center justify-center`}>
               <button
-                onClick={() => setShowEntry(true)}
-                className="rounded-md border border-sky-500/20 bg-sky-500/10 px-2 py-1 text-[11px] font-semibold text-sky-200"
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 p-1 text-slate-400 hover:text-slate-200"
+                title="Expand sidebar"
               >
-                📝 Data Entry
-              </button>
-              <button
-                onClick={() => setShowShift(true)}
-                className="rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 px-2 py-1 text-[11px] font-semibold text-slate-300 hover:text-slate-100"
-              >
-                ⏰ Shift
-              </button>
-              <button
-                onClick={() => setShowExport(true)}
-                className="rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 px-2 py-1 text-[11px] font-semibold text-slate-300 hover:text-slate-100"
-              >
-                📤 Export
-              </button>
-              <RefreshSelector interval={refreshInt} onChange={setRefreshInt} />
-            </div>
-
-            <div className="md:hidden">
-              <button
-                onClick={() => setMobileActionsOpen((v) => !v)}
-                className="rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1 text-[11px] font-semibold text-slate-300 hover:text-slate-100"
-                aria-expanded={mobileActionsOpen}
-                aria-controls="oee-mobile-actions"
-                title="Actions"
-              >
-                ⋯
+                ☰
               </button>
             </div>
-
-            <div className="flex items-center gap-2 rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1">
-              <div
-                className="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--oee-border)] text-[10px] font-bold"
-                style={{
-                  background: `${ROLE_COLOR[user.role]}25`,
-                  color: ROLE_COLOR[user.role],
-                }}
-              >
-                {user.avatar}
-              </div>
-              <div className="leading-tight">
-                <div className="text-[10px] font-semibold">{user.name}</div>
-                <div className="text-[8px] uppercase" style={{ color: ROLE_COLOR[user.role] }}>
-                  {user.role}
-                </div>
-              </div>
+            <div className={`${sidebarCollapsed ? 'lg:hidden' : ''}`}>
+              <div className="text-sm font-bold tracking-tight text-white">OEE Monitor</div>
+              <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Factory Intelligence</div>
+            </div>
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => setUser(null)}
-                className="ml-1 rounded px-1 text-slate-500 hover:bg-slate-700/50 hover:text-slate-300"
-                title="Sign out"
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className={`${sidebarCollapsed ? 'lg:hidden' : ''} hidden lg:block rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 p-1 text-slate-400 hover:text-slate-200`}
+                title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               >
-                ⏻
+                {sidebarCollapsed ? '☰' : '◀'}
+              </button>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="lg:hidden rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 p-1 text-slate-400 hover:text-slate-200"
+              >
+                ✕
               </button>
             </div>
           </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 overflow-y-auto p-4">
+            <div className="space-y-2">
+              {tabs.map((t) => {
+                const ok = allowed.includes(t.key);
+                const href = `/${t.key}`;
+                const active = pathname === href;
+                return (
+                  <Link
+                    key={t.key}
+                    href={ok ? href : pathname}
+                    onClick={() => setSidebarOpen(false)}
+                    aria-disabled={!ok}
+                    className={
+                      "flex items-center justify-center rounded-lg px-3 py-2 text-[11px] transition " +
+                      (active
+                        ? "bg-[var(--oee-surface-2)]/70 text-sky-200 border border-sky-500/30"
+                        : ok
+                          ? "text-slate-400 hover:bg-[var(--oee-surface-2)]/40 hover:text-slate-200"
+                          : "text-slate-600 opacity-50 pointer-events-none")
+                    }
+                    title={sidebarCollapsed ? t.label : undefined}
+                  >
+                    <span className="text-lg">{t.icon}</span>
+                    <span className={`${sidebarCollapsed ? 'lg:hidden' : ''} flex-1 ml-3`}>{t.label}</span>
+                    {!ok && <span className={`${sidebarCollapsed ? 'lg:hidden' : ''} text-[10px]`}>🔒</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
         </div>
+      </aside>
 
-        {mobileActionsOpen && (
-          <div
-            id="oee-mobile-actions"
-            className="md:hidden mt-2 rounded-xl border border-[var(--oee-border)] bg-[var(--oee-surface)]/70 p-2"
-          >
-            <div className="flex flex-wrap gap-2">
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 z-20 bg-black/50 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Main Content */}
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'}`}>
+        {/* Top Header */}
+        <header className="sticky top-0 z-10 border-b border-[var(--oee-border)] bg-gradient-to-r from-[#0b1426] via-[#0d1b35] to-[#0b1426] px-4 py-2 lg:ml-0">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
               <button
-                onClick={() => {
-                  setShowEntry(true);
-                  setMobileActionsOpen(false);
-                }}
-                className="flex-1 rounded-md border border-sky-500/20 bg-sky-500/10 px-2 py-2 text-[11px] font-semibold text-sky-200"
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 p-2 text-slate-400 hover:text-slate-200"
               >
-                📝 Data Entry
+                ☰
               </button>
-              <button
-                onClick={() => {
-                  setShowShift(true);
-                  setMobileActionsOpen(false);
-                }}
-                className="flex-1 rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 px-2 py-2 text-[11px] font-semibold text-slate-300 hover:text-slate-100"
-              >
-                ⏰ Shift
-              </button>
-              <button
-                onClick={() => {
-                  setShowExport(true);
-                  setMobileActionsOpen(false);
-                }}
-                className="flex-1 rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 px-2 py-2 text-[11px] font-semibold text-slate-300 hover:text-slate-100"
-              >
-                📤 Export
-              </button>
-              <div className="w-full">
+              <div className="hidden lg:block text-sm font-bold tracking-tight">OEE Monitor</div>
+              <div className="hidden lg:block h-5 w-px bg-[var(--oee-border)]" />
+              <div className="hidden lg:block text-[10px] uppercase tracking-[0.12em] text-slate-500">Factory Intelligence</div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="text-[10px] hidden sm:block">
+                <span className="text-emerald-400"> {ms.filter((m) => m.status === "running").length} Run</span>
+                <span className="ml-2 text-red-400"> {ms.filter((m) => m.status === "breakdown").length} Down</span>
+                <span className="ml-2 text-amber-400"> {ms.filter((m) => m.status === "idle").length} Idle</span>
+              </div>
+
+              <div className="rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1 font-mono text-[10px] hidden sm:block">
+                <span className="font-bold text-sky-400">{kpi.oee}%</span>
+                <span className="mx-1 text-slate-700">=</span>
+                <span className="text-emerald-400">{kpi.avail}</span>
+                <span className="text-slate-700">×</span>
+                <span className="text-amber-400">{kpi.perf}</span>
+                <span className="text-slate-700">×</span>
+                <span className="text-violet-400">{kpi.qual}</span>
+              </div>
+
+              {dayShift && (
+                <button
+                  onClick={() => setShowShift(true)}
+                  className="rounded-full border px-2 py-0.5 font-mono text-[9px] hidden sm:flex items-center gap-1.5 hover:opacity-80 transition-opacity cursor-pointer"
+                  title="Click to configure shifts"
+                  style={{
+                    borderColor: dayShift.color || '#3b82f6',
+                    backgroundColor: `${dayShift.color || '#3b82f6'}20`,
+                    color: '#e2e8f0'
+                  }}
+                >
+                  <span 
+                    className="w-2.5 h-2.5 rounded-full shadow-sm" 
+                    style={{
+                      backgroundColor: dayShift.color || '#3b82f6',
+                      boxShadow: `0 0 4px ${dayShift.color || '#3b82f6'}80`
+                    }}
+                  ></span>
+                  {dayShift.name} · {dayShift.start}–{dayShift.end}
+                </button>
+              )}
+
+              <div className="w-full sm:w-auto sm:min-w-[180px] rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1 text-center font-mono text-[10px] sm:text-[11px] text-sky-300">
+                {time.toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" })}{" "}
+                {time.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+              </div>
+
+              <div className="hidden lg:flex items-center gap-2">
+                <button
+                  onClick={() => setShowShift(true)}
+                  className="rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 px-2 py-1 text-[11px] font-semibold text-slate-300 hover:text-slate-100 flex items-center gap-1"
+                >
+                  {dayShift && (
+                    <span 
+                      className="w-2 h-2 rounded-full" 
+                      style={{
+                        backgroundColor: dayShift.color || '#3b82f6'
+                      }}
+                    ></span>
+                  )}
+                  ⏰ Shift
+                </button>
                 <RefreshSelector interval={refreshInt} onChange={setRefreshInt} />
               </div>
+
+              <div className="flex items-center gap-2 rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1">
+                <div
+                  className="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--oee-border)] text-[10px] font-bold"
+                  style={{
+                    background: `${ROLE_COLOR[user.role]}25`,
+                    color: ROLE_COLOR[user.role],
+                  }}
+                >
+                  {user.avatar}
+                </div>
+                <div className="leading-tight">
+                  <div className="text-[10px] font-semibold">{user.name}</div>
+                  <div className="text-[8px] uppercase" style={{ color: ROLE_COLOR[user.role] }}>
+                    {user.role}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setUser(null)}
+                  className="ml-1 rounded px-1 text-slate-500 hover:bg-slate-700/50 hover:text-slate-300"
+                  title="Sign out"
+                >
+                  ⏻
+                </button>
+              </div>
+
+              <div className="md:hidden">
+                <button
+                  onClick={() => setMobileActionsOpen((v) => !v)}
+                  className="rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1 text-[11px] font-semibold text-slate-300 hover:text-slate-100"
+                  aria-expanded={mobileActionsOpen}
+                  aria-controls="oee-mobile-actions"
+                  title="Actions"
+                >
+                  ⋯
+                </button>
+              </div>
             </div>
           </div>
-        )}
 
-        <nav className="mt-2 flex items-center gap-1 overflow-x-auto border-t border-[var(--oee-border)]/70 pt-2">
-          {tabs.map((t) => {
-            const ok = allowed.includes(t.key);
-            const href = `/${t.key}`;
-            const active = pathname === href;
-            return (
-              <Link
-                key={t.key}
-                href={ok ? href : pathname}
-                aria-disabled={!ok}
-                className={
-                  "whitespace-nowrap rounded-md px-3 py-1 text-[11px] border-b-2 transition " +
-                  (active
-                    ? "bg-[var(--oee-surface-2)]/70 text-sky-200 border-sky-500"
-                    : ok
-                      ? "bg-transparent text-slate-500 hover:bg-[var(--oee-surface-2)]/40 border-transparent"
-                      : "bg-transparent text-slate-700 border-transparent opacity-50 pointer-events-none")
-                }
-              >
-                {t.icon} {t.label}
-                {!ok && <span className="ml-1 text-[10px]">🔒</span>}
-              </Link>
-            );
-          })}
-        </nav>
-      </header>
+          {mobileActionsOpen && (
+            <div
+              id="oee-mobile-actions"
+              className="md:hidden mt-2 rounded-xl border border-[var(--oee-border)] bg-[var(--oee-surface)]/70 p-2"
+            >
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => {
+                    setShowEntry(true);
+                    setMobileActionsOpen(false);
+                  }}
+                  className="flex-1 rounded-md border border-sky-500/20 bg-sky-500/10 px-2 py-2 text-[11px] font-semibold text-sky-200"
+                >
+                  📝 Data Entry
+                </button>
+                <button
+                  onClick={() => {
+                    setShowShift(true);
+                    setMobileActionsOpen(false);
+                  }}
+                  className="flex-1 rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 px-2 py-2 text-[11px] font-semibold text-slate-300 hover:text-slate-100"
+                >
+                  ⏰ Shift
+                </button>
+                <button
+                  onClick={() => {
+                    setShowExport(true);
+                    setMobileActionsOpen(false);
+                  }}
+                  className="flex-1 rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 px-2 py-2 text-[11px] font-semibold text-slate-300 hover:text-slate-100"
+                >
+                  📤 Export
+                </button>
+                <div className="w-full">
+                  <RefreshSelector interval={refreshInt} onChange={setRefreshInt} />
+                </div>
+              </div>
+            </div>
+          )}
+        </header>
 
-      <main className="mx-auto flex max-w-[1440px] flex-col gap-3 p-4">{children}</main>
+        <main className="flex-1 mx-auto flex max-w-[1440px] flex-col gap-3 p-4 pt-4">{children}</main>
+      </div>
 
       {showShift && <ShiftModal shifts={shifts} onSave={setShifts} onClose={() => setShowShift(false)} />}
       {showEntry && (
