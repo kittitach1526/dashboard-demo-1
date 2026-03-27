@@ -67,9 +67,8 @@ export default function OEEFrame({ children }) {
                 ☰
               </button>
             </div>
-            <div className={`${sidebarCollapsed ? 'lg:hidden' : ''}`}>
-              <div className="text-sm font-bold tracking-tight text-white">OEE Monitor</div>
-              <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Factory Intelligence</div>
+            <div className={`${sidebarCollapsed ? 'lg:hidden' : ''} flex items-center gap-3`}>
+              <img src="/Logo.png" alt="FOSTEC" className="h-8 object-contain" />
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -137,7 +136,7 @@ export default function OEEFrame({ children }) {
               >
                 ☰
               </button>
-              <div className="hidden lg:block text-sm font-bold tracking-tight">OEE Monitor</div>
+              {sidebarCollapsed && <img src="/Logo.png" alt="FOSTEC" className="hidden lg:block h-7 object-contain" />}
               <div className="hidden lg:block h-5 w-px bg-[var(--oee-border)]" />
               <div className="hidden lg:block text-[10px] uppercase tracking-[0.12em] text-slate-500">Factory Intelligence</div>
             </div>

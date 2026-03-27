@@ -23,28 +23,22 @@ export default function ExportModal({ onClose, machines, kpi }) {
     setBusy(true);
     setTimeout(() => {
       const ts = new Date().toISOString().slice(0, 10);
+      const h = ["Machine", "Line", "OEE%", "Avail%", "Perf%", "Qual%", "Status", "Good", "Total", "Downtime(min)"];
+      const dataRows = machines.map((m) => [m.name, m.line, m.oee, Math.round(m.availability), Math.round(m.performance), Math.round(m.quality), m.status, m.goodCount, m.totalCount, m.downtimeMins]);
+
       if (fmt === "csv") {
-        const h = ["Machine", "Line", "OEE%", "Avail%", "Perf%", "Qual%", "Status", "Good", "Total", "Downtime(min)"];
-        const rows = machines.map((m) => [m.name, m.line, m.oee, Math.round(m.availability), Math.round(m.performance), Math.round(m.quality), m.status, m.goodCount, m.totalCount, m.downtimeMins]);
-        dl(`FOSTEC_OEE_${rng}_${ts}.csv`, new Blob([[h, ...rows].map((r) => r.join(",")).join("\n")], { type: "text/csv" }));
-      } else if (fmt === "json") {
-        dl(`FOSTEC_OEE_${rng}_${ts}.json`, new Blob([JSON.stringify({ exported: new Date().toISOString(), range: rng, kpi, machines }, null, 2)], { type: "application/json" }));
-      } else {
-        const rows = machines
-          .map(
-            (m) =>
-              `<tr><td>${m.name}</td><td>${m.line}</td><td style=\"color:#22d3ee;font-weight:700\">${m.oee}%</td><td>${Math.round(m.availability)}%</td><td>${Math.round(m.performance)}%</td><td>${Math.round(m.quality)}%</td><td>${m.goodCount}</td><td>${m.totalCount}</td><td style=\"color:${m.status === "running" ? "#22c55e" : m.status === "breakdown" ? "#ef4444" : "#f59e0b"}\">${m.status}</td></tr>`
-          )
-          .join("");
-        dl(
-          `FOSTEC_OEE_${rng}_${ts}.html`,
-          new Blob(
-            [
-              `<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>FOSTEC OEE Report</title><style>body{font-family:Arial,sans-serif;background:#070d19;color:#e2e8f0;padding:32px}h1{color:#22d3ee}table{width:100%;border-collapse:collapse;margin-top:20px}th{background:#1e293b;padding:9px;text-align:left;font-size:11px;color:#94a3b8}td{padding:8px;border-bottom:1px solid #1e293b;font-size:12px}</style></head><body><h1>FOSTEC OEE Monitor — Report</h1><p style=\"color:#64748b;font-size:11px\">Generated: ${new Date().toLocaleString()} | Range: ${rng}</p><table><thead><tr><th>Machine</th><th>Line</th><th>OEE</th><th>Avail</th><th>Perf</th><th>Qual</th><th>Good</th><th>Total</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></body></html>`,
-            ],
-            { type: "text/html" }
-          )
-        );
+        dl(`FOSTEC_OEE_${rng}_${ts}.csv`, new Blob([[h, ...dataRows].map((r) => r.join(",")).join("\n")], { type: "text/csv" }));
+      } else if (fmt === "xls") {
+        const trs = dataRows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("");
+        const table = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>OEE Report</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table><thead><tr>${h.map((c) => `<th style="background:#1e293b;color:#e2e8f0;font-weight:bold;padding:6px">${c}</th>`).join("")}</tr></thead><tbody>${trs}</tbody></table></body></html>`;
+        dl(`FOSTEC_OEE_${rng}_${ts}.xls`, new Blob([table], { type: "application/vnd.ms-excel" }));
+      } else if (fmt === "pdf") {
+        const trs = dataRows.map((r) => `<tr>${r.map((c) => `<td style="padding:8px;border-bottom:1px solid #ddd;font-size:12px">${c}</td>`).join("")}</tr>`).join("");
+        const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>FOSTEC OEE Report</title><style>body{font-family:Arial,sans-serif;padding:32px}h1{color:#0ea5e9}table{width:100%;border-collapse:collapse;margin-top:20px}th{background:#1e293b;color:#fff;padding:9px;text-align:left;font-size:11px}td{padding:8px;border-bottom:1px solid #ddd;font-size:12px}</style></head><body><h1>FOSTEC OEE Monitor — Report</h1><p style="color:#64748b;font-size:11px">Generated: ${new Date().toLocaleString()} | Range: ${rng} | OEE: ${kpi.oee}%</p><table><thead><tr>${h.map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${trs}</tbody></table></body></html>`;
+        const w = window.open("", "_blank");
+        w.document.write(html);
+        w.document.close();
+        w.print();
       }
       setBusy(false);
       setDone(true);
@@ -58,7 +52,7 @@ export default function ExportModal({ onClose, machines, kpi }) {
         <div>
           <div className="mb-1 text-[10px] uppercase tracking-wider text-slate-500">FORMAT</div>
           <div className="flex gap-2">
-            {["csv", "json", "html"].map((f) => (
+            {["csv", "xls", "pdf"].map((f) => (
               <button
                 key={f}
                 onClick={() => setFmt(f)}
