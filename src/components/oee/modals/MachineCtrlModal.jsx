@@ -8,66 +8,40 @@ export default function MachineCtrlModal({ machine, onUpdate, onClose }) {
   const [aBase, setABase] = useState(machine.baseAvail || 78);
   const [pBase, setPBase] = useState(machine.basePerf || 78);
   const [qBase, setQBase] = useState(machine.baseQual || 78);
-  const [isManual, setIsManual] = useState(ms.forcedStatus ? true : false);
-  
-  // ดึงสถานะปัจจุบันมา active ปุ่มตอนเปิด modal
+  const [oeeBase, setOeeBase] = useState(100); 
+  const [isManual, setIsManual] = useState(!!ms.forcedStatus);
+
   useEffect(() => {
-    if (ms.forcedStatus) {
-      setIsManual(true);
-    } else {
-      setIsManual(false);
-    }
+    setIsManual(!!ms.forcedStatus);
   }, [ms.forcedStatus]);
-  
-  // ใน MANUAL mode ถ้ายังไม่ได้เลือกสถานะ ให้ใช้สถานะปัจจุบัน
+
   const currentManualStatus = ms.forcedStatus || ms.status;
 
+  // การคำนวณความกว้างหลอด (Relative Scaling)
+  const availWidth = aBase;
+  const perfWidth = (pBase * aBase) / 100;
+  const qualWidth = (qBase * pBase * aBase) / 10000;
+  const finalOeeWidth = (oeeBase * qBase * pBase * aBase) / 1000000;
+
   const apply = () => {
-    console.log('Apply clicked - isManual:', isManual);
-    console.log('Values:', { aBase, pBase, qBase, forcedStatus: ms.forcedStatus });
-    
     if (isManual) {
-      // Manual mode: ใช้ค่าที่ตั้งไว้และสถานะที่เลือก และค่าที่คำนวณจาก slider
-      const updateData = { 
+      const updateData = {
         ...ms,
-        baseAvail: aBase, 
-        basePerf: pBase, 
-        baseQual: qBase, 
+        baseAvail: aBase,
+        basePerf: pBase,
+        baseQual: qBase,
         forcedStatus: ms.forcedStatus || currentManualStatus,
-        // ใช้ค่าจาก slider โดยตรง
         availability: aBase,
         performance: pBase,
         quality: qBase,
-        oee: ((aBase / 100) * (pBase / 100) * (qBase / 100) * 100).toFixed(1),
-        // ล็อคค่าไว้ไม่ให้เปลี่ยน
+        oee: finalOeeWidth.toFixed(1),
         speed: 0,
         repairTicksLeft: 0
       };
-      console.log('Manual update data:', updateData);
       onUpdate(updateData);
     } else {
-      // Auto mode: ใช้ค่าสุ่มและไม่มี forcedStatus
-      const randomAvail = Math.floor(Math.random() * 40) + 60;
-      const randomPerf = Math.floor(Math.random() * 40) + 60;
-      const randomQual = Math.floor(Math.random() * 40) + 60;
-      const updateData = { 
-        id: ms.id,
-        name: ms.name,
-        line: ms.line,
-        baseAvail: randomAvail,
-        basePerf: randomPerf,
-        baseQual: randomQual,
-        forcedStatus: null,
-        // ใช้ค่าสุ่มโดยตรง
-        availability: randomAvail,
-        performance: randomPerf,
-        quality: randomQual,
-        oee: ((randomAvail / 100) * (randomPerf / 100) * (randomQual / 100) * 100).toFixed(1),
-        // เปิดให้ระบบทำงาน
-        speed: 1
-      };
-      console.log('Auto update data:', updateData);
-      onUpdate(updateData);
+      // โหมด Auto: ส่งค่า null กลับไปเพื่อให้ระบบจำลอง (Simulation) ทำงานต่อเอง
+      onUpdate({ ...ms, forcedStatus: null, speed: 1 });
     }
     onClose();
   };
@@ -78,153 +52,128 @@ export default function MachineCtrlModal({ machine, onUpdate, onClose }) {
     { id: "breakdown", label: "STOP", icon: "⛔", color: "#ef4444" },
   ];
 
-  const oeePreview = ((aBase / 100) * (pBase / 100) * (qBase / 100) * 100).toFixed(1);
-
   const rangeStyles = `
-    input[type=range] {
-      -webkit-appearance: none;
-      width: 100%;
-      background: transparent;
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 100%;
-      margin: 0;
-    }
-    input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      height: 18px;
-      width: 18px;
-      border-radius: 50%;
-      background: #ffffff;
-      cursor: pointer;
-      box-shadow: 0 0 8px rgba(255,255,255,0.8);
-      border: 3px solid #0f172a;
-      position: relative;
-      z-index: 30;
-    }
+    input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; position: absolute; top: 0; left: 0; height: 100%; margin: 0; }
+    input[type=range]:disabled { cursor: not-allowed; opacity: 0; } /* ซ่อน thumb เมื่อ disabled */
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #ffffff; box-shadow: 0 0 10px rgba(255,255,255,0.5); border: 2px solid #0f172a; position: relative; z-index: 50; cursor: pointer; }
+    input[type=range]:disabled::-webkit-slider-thumb { display: none; }
   `;
 
   return (
-    <ModalShell title={`⚙️ ${ms.name}`} onClose={onClose} widthClass="w-[440px]">
+    <ModalShell title={`⚙️ Machine Control: ${ms.name}`} onClose={onClose} widthClass="w-[460px]">
       <style>{rangeStyles}</style>
-      
-      <div className="space-y-5 p-1 relative">
-        
-        {/* 1. Mode Selector */}
+
+      <div className="space-y-6 p-1">
+        {/* Mode Selector */}
         <div className="flex justify-center">
-          <div className="bg-slate-800/80 p-0.5 rounded-lg border border-white/5 flex">
+          <div className="bg-slate-800/80 p-1 rounded-xl border border-white/5 flex gap-1">
             <button 
               onClick={() => { setIsManual(false); setMs(prev => ({ ...prev, forcedStatus: null })); }}
-              className={`px-4 py-2 text-[10px] font-bold rounded-md transition-all ${!isManual ? "bg-blue-600 text-white shadow-md" : "text-slate-500"}`}
+              className={`px-6 py-2 text-[10px] font-black rounded-lg transition-all ${!isManual ? "bg-blue-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-400"}`}
             >
               AUTO MODE
             </button>
             <button 
               onClick={() => setIsManual(true)}
-              className={`px-4 py-2 text-[10px] font-bold rounded-md transition-all ${isManual ? "bg-blue-600 text-white shadow-md" : "text-slate-500"}`}
+              className={`px-6 py-2 text-[10px] font-black rounded-lg transition-all ${isManual ? "bg-blue-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-400"}`}
             >
               MANUAL MODE
             </button>
           </div>
         </div>
 
-        {/* 2. Status Display */}
-        <div className="bg-slate-900/60 rounded-2xl p-6 border border-white/5">
-          <div className="text-center mb-4">
-            <div className="text-[10px] text-slate-500 tracking-widest uppercase mb-2">Machine Status</div>
-            <div className="flex justify-center items-center gap-4">
-              {statusBtns.map((st) => {
-                const active = isManual ? currentManualStatus === st.id : ms.status === st.id;
-                return (
-                  <button
-                    key={st.id}
-                    disabled={!isManual}
-                    onClick={() => setMs(prev => ({ ...prev, forcedStatus: st.id }))}
-                    className={`flex flex-col items-center p-4 rounded-xl border-2 transition-all ${
-                      active ? "scale-105 shadow-lg" : "opacity-60"
-                    } ${!isManual ? "cursor-not-allowed" : "hover:scale-105"}`}
-                    style={{
-                      borderColor: active ? st.color : `${st.color}40`,
-                      backgroundColor: active ? `${st.color}20` : `${st.color}08`,
-                    }}
-                  >
-                    <span className="text-2xl mb-2">{st.icon}</span>
-                    <span className="text-xs font-bold" style={{ color: active ? st.color : `${st.color}AA` }}>{st.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-            {!isManual && (
-              <div className="mt-3 text-[9px] text-slate-500 text-center">
-                Auto-simulated status
-              </div>
-            )}
+        {/* Status Area */}
+        <div className={`bg-slate-900/40 rounded-3xl p-6 border border-white/5 shadow-inner transition-opacity ${!isManual ? 'opacity-80' : 'opacity-100'}`}>
+          <div className="flex justify-around items-center mb-8">
+            {statusBtns.map((st) => {
+              const active = isManual ? currentManualStatus === st.id : ms.status === st.id;
+              return (
+                <button
+                  key={st.id}
+                  disabled={!isManual}
+                  onClick={() => setMs(prev => ({ ...prev, forcedStatus: st.id }))}
+                  className={`flex flex-col items-center p-4 rounded-2xl border-2 transition-all duration-300 ${active ? "scale-110" : "opacity-20 grayscale"} ${!isManual ? "cursor-not-allowed" : "hover:border-white/20"}`}
+                  style={{ borderColor: active ? st.color : "transparent", backgroundColor: active ? `${st.color}15` : "transparent" }}
+                >
+                  <span className="text-2xl mb-1">{st.icon}</span>
+                  <span className="text-[10px] font-black" style={{ color: st.color }}>{st.label}</span>
+                </button>
+              );
+            })}
           </div>
-          
-          {/* 3. Sliders Area (Relative Scaling) */}
-          <div className="space-y-4">
-            <div className="text-[10px] text-slate-500 tracking-widest uppercase text-center mb-3">OEE Parameters</div>
-            
+
+          {/* Sliders Area */}
+          <div className="space-y-5">
             {/* Availability */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-end px-1">
-                <span className="text-[9px] font-bold text-slate-500 tracking-widest uppercase">Availability</span>
-                <span className="text-md font-mono font-bold text-orange-500">{aBase}%</span>
+            <div className={`space-y-2 transition-all ${!isManual ? 'grayscale opacity-50' : ''}`}>
+              <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-orange-500">
+                <span>Availability</span> <span>{aBase}%</span>
               </div>
-              <div className="relative h-1.5 bg-slate-800 rounded-full">
+              <div className="relative h-2 bg-slate-800 rounded-full">
                 <div className="absolute h-full bg-orange-500 rounded-full" style={{ width: `${aBase}%` }} />
-                <input type="range" min="0" max="100" value={aBase} onChange={(e) => setABase(Number(e.target.value))} />
+                <input type="range" min="0" max="100" value={aBase} disabled={!isManual} onChange={(e) => setABase(Number(e.target.value))} />
               </div>
             </div>
 
             {/* Performance */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-end px-1">
-                <span className="text-[9px] font-bold text-slate-500 tracking-widest uppercase">Performance</span>
-                <span className="text-md font-mono font-bold text-yellow-400">{pBase}%</span>
+            <div className={`space-y-2 transition-all ${!isManual ? 'grayscale opacity-50' : ''}`}>
+              <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-yellow-400">
+                <span>Performance</span> <span>{pBase}%</span>
               </div>
-              <div className="relative h-1.5 bg-slate-800/50 rounded-full">
-                <div className="absolute h-full bg-slate-700/30 rounded-full" style={{ width: `${aBase}%` }} />
-                <div className="absolute h-full bg-yellow-400 rounded-full" style={{ width: `${(pBase * aBase) / 100}%` }} />
-                <div className="absolute top-[-6px] h-4" style={{ width: `${aBase}%` }}>
-                  <input type="range" min="0" max="100" value={pBase} onChange={(e) => setPBase(Number(e.target.value))} />
+              <div className="relative h-2 bg-slate-800/50 rounded-full">
+                <div className="absolute h-full bg-slate-700/20 rounded-full" style={{ width: `${availWidth}%` }} />
+                <div className="absolute h-full bg-yellow-400 rounded-full" style={{ width: `${perfWidth}%` }} />
+                <div className="absolute inset-0" style={{ width: `${availWidth}%` }}>
+                  <input type="range" min="0" max="100" value={pBase} disabled={!isManual} onChange={(e) => setPBase(Number(e.target.value))} />
                 </div>
               </div>
             </div>
 
             {/* Quality */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-end px-1">
-                <span className="text-[9px] font-bold text-slate-500 tracking-widest uppercase">Quality</span>
-                <span className="text-md font-mono font-bold text-blue-500">{qBase}%</span>
+            <div className={`space-y-2 transition-all ${!isManual ? 'grayscale opacity-50' : ''}`}>
+              <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-blue-500">
+                <span>Quality</span> <span>{qBase}%</span>
               </div>
-              <div className="relative h-1.5 bg-slate-800/50 rounded-full">
-                <div className="absolute h-full bg-slate-700/30 rounded-full" style={{ width: `${(pBase * aBase) / 100}%` }} />
-                <div className="absolute h-full bg-blue-500 rounded-full" style={{ width: `${(qBase * pBase * aBase) / 10000}%` }} />
-                <div className="absolute top-[-6px] h-4" style={{ width: `${(pBase * aBase) / 100}%` }}>
-                  <input type="range" min="0" max="100" value={qBase} onChange={(e) => setQBase(Number(e.target.value))} />
+              <div className="relative h-2 bg-slate-800/50 rounded-full">
+                <div className="absolute h-full bg-slate-700/20 rounded-full" style={{ width: `${perfWidth}%` }} />
+                <div className="absolute h-full bg-blue-500 rounded-full" style={{ width: `${qualWidth}%` }} />
+                <div className="absolute inset-0" style={{ width: `${perfWidth}%` }}>
+                  <input type="range" min="0" max="100" value={qBase} disabled={!isManual} onChange={(e) => setQBase(Number(e.target.value))} />
                 </div>
               </div>
             </div>
 
-            {/* OEE Preview (Large Display) */}
-            <div className="pt-4 border-t border-white/5 text-center">
-              <div className="text-[9px] text-slate-500 tracking-widest mb-1">OEE PREVIEW</div>
-              <div className="text-4xl font-black text-emerald-400 font-mono italic">
-                {oeePreview}<span className="text-lg ml-0.5 not-italic opacity-40">%</span>
+            {/* OEE Slider */}
+            <div className={`space-y-2 transition-all ${!isManual ? 'grayscale opacity-50' : ''}`}>
+              <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-emerald-400">
+                <span>OEE Adjustment</span> <span>{oeeBase}%</span>
+              </div>
+              <div className="relative h-2 bg-slate-800/50 rounded-full">
+                <div className="absolute h-full bg-slate-700/20 rounded-full" style={{ width: `${qualWidth}%` }} />
+                <div className="absolute h-full bg-emerald-500 rounded-full" style={{ width: `${finalOeeWidth}%` }} />
+                <div className="absolute inset-0" style={{ width: `${qualWidth}%` }}>
+                  <input type="range" min="0" max="100" value={oeeBase} disabled={!isManual} onChange={(e) => setOeeBase(Number(e.target.value))} />
+                </div>
+              </div>
+            </div>
+
+            {/* Preview Value */}
+            <div className="pt-6 border-t border-white/5 text-center">
+              <div className="text-[10px] text-slate-500 tracking-[0.3em] font-bold mb-1 uppercase">Calculated OEE Index</div>
+              <div className={`text-5xl font-black font-mono tracking-tighter italic transition-colors ${!isManual ? 'text-slate-600' : 'text-emerald-400'}`}>
+                {(!isManual ? ms.oee : finalOeeWidth.toFixed(1))}<span className="text-xl not-italic opacity-30 ml-1">%</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2">
-          <button onClick={onClose} className="flex-1 py-3 rounded-xl bg-slate-800 text-slate-400 text-[10px] font-bold uppercase">
+        <div className="flex gap-3">
+          <button onClick={onClose} className="flex-1 py-4 rounded-2xl bg-slate-800 text-slate-400 text-xs font-bold uppercase hover:bg-slate-700 transition-colors">
             Cancel
           </button>
-          <button onClick={apply} className="flex-[2] py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-[10px] uppercase shadow-lg shadow-blue-900/20">
-            Confirm Update
+          <button onClick={apply} className="flex-[2] py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black text-xs uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all">
+            Confirm Settings
           </button>
         </div>
       </div>
