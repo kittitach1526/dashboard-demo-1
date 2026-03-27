@@ -290,6 +290,7 @@ export default function OverviewPage() {
                         ["Availability", m.availability, "#22c55e"],
                         ["Performance", m.performance, "#f59e0b"],
                         ["Quality", m.quality, "#a78bfa"],
+                        ["OEE", m.oee, "#06b6d4"],
                       ].map(([label, val, color]) => (
                         <div key={label} className="flex items-center gap-3">
                           <div className="w-20 text-[10px] text-slate-500">{label}</div>
