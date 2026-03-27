@@ -23,11 +23,6 @@ export default function OverviewPage() {
 
   const allowed = ROLE_ACCESS[user?.role] || ["overview"];
 
-  const alertsCount = useMemo(
-    () => ms.filter((m) => m.status === "breakdown").length + ms.filter((m) => m.oee < 65).length,
-    [ms]
-  );
-
   const liveAlerts = useMemo(() => {
     const ts = time.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
     const items = [];
@@ -136,6 +131,10 @@ export default function OverviewPage() {
 
     return [...must, ...rest].slice(0, 6);
   }, [ms, time]);
+
+  const alertsCount = useMemo(() => {
+    return liveAlerts.length;
+  }, [liveAlerts]);
 
   const losses = useMemo(
     () => [
