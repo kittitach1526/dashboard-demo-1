@@ -8,7 +8,7 @@ export default function GaugeChart({ value, target = 85, color, size = 100 }) {
   const circ = 2 * Math.PI * r;
   const dash = (v) => (Math.min(v, 100) / 100) * circ * 0.75;
   const rot = -225;
-  const col = value >= target ? color : value >= target * 0.85 ? "#f59e0b" : "#ef4444";
+  const col = color;
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
