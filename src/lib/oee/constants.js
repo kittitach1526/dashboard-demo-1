@@ -9,10 +9,10 @@ export const USERS = [
 ];
 
 export const ROLE_ACCESS = {
-  admin: ["overview", "equipment", "availability", "performance", "quality", "analytics", "alerts", "data-entry"],
-  manager: ["overview", "equipment", "analytics", "alerts", "quality", "data-entry"],
-  engineer: ["overview", "equipment", "availability", "performance", "quality", "analytics", "data-entry"],
-  operator: ["overview", "equipment", "alerts", "data-entry"],
+  admin: ["overview", "equipment", "availability", "performance", "quality", "analytics", "alerts", "data", "settings"],
+  manager: ["overview", "equipment", "analytics", "alerts", "quality", "data", "settings"],
+  engineer: ["overview", "equipment", "availability", "performance", "quality", "analytics", "data", "settings"],
+  operator: ["overview", "equipment", "alerts", "data", "settings"],
   viewer: ["overview", "analytics"],
 };
 

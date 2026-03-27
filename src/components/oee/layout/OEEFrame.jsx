@@ -25,6 +25,7 @@ export default function OEEFrame({ children }) {
   const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [dataMenuOpen, setDataMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!user) router.replace("/login");
@@ -48,7 +49,13 @@ export default function OEEFrame({ children }) {
     { key: "quality", label: "Quality", icon: "✅" },
     { key: "analytics", label: "Analytics", icon: "📈" },
     { key: "alerts", label: "Alerts", icon: "🔔" },
-    { key: "data-entry", label: "Data Entry", icon: "📝" },
+    { key: "settings", label: "Setting", icon: "⚙️" },
+  ];
+
+  const dataSubMenus = [
+    { key: "data/history", label: "ข้อมูลย้อนหลัง", icon: "�" },
+    { key: "data/range", label: "ตามช่วงเวลา", icon: "🔍" },
+    { key: "data/export", label: "Export", icon: "📤" },
   ];
 
   return (
@@ -111,6 +118,51 @@ export default function OEEFrame({ children }) {
                   </Link>
                 );
               })}
+
+              {/* Data Menu with Sub-menus */}
+              {allowed.includes("data") && (
+                <>
+                  <button
+                    onClick={() => setDataMenuOpen(!dataMenuOpen)}
+                    className={
+                      "flex items-center justify-center rounded-lg px-3 py-2 text-[11px] transition w-full " +
+                      (pathname.startsWith("/data")
+                        ? "bg-[var(--oee-surface-2)]/70 text-sky-200 border border-sky-500/30"
+                        : "text-slate-400 hover:bg-[var(--oee-surface-2)]/40 hover:text-slate-200")
+                    }
+                    title={sidebarCollapsed ? "Data" : undefined}
+                  >
+                    <span className="text-lg">💾</span>
+                    <span className={`${sidebarCollapsed ? 'lg:hidden' : ''} flex-1 ml-3 text-left`}>Data</span>
+                    <span className={`${sidebarCollapsed ? 'lg:hidden' : ''} text-[10px] text-slate-500 transition-transform ${dataMenuOpen ? 'rotate-180' : ''}`}>▼</span>
+                  </button>
+
+                  {dataMenuOpen && !sidebarCollapsed && (
+                    <div className="ml-4 space-y-1 border-l border-[var(--oee-border)] pl-3">
+                      {dataSubMenus.map((sub) => {
+                        const href = `/${sub.key}`;
+                        const active = pathname === href;
+                        return (
+                          <Link
+                            key={sub.key}
+                            href={href}
+                            onClick={() => setSidebarOpen(false)}
+                            className={
+                              "flex items-center rounded-lg px-3 py-1.5 text-[11px] transition " +
+                              (active
+                                ? "bg-[var(--oee-surface-2)]/70 text-sky-200 border border-sky-500/30"
+                                : "text-slate-400 hover:bg-[var(--oee-surface-2)]/40 hover:text-slate-200")
+                            }
+                          >
+                            <span className="text-sm">{sub.icon}</span>
+                            <span className="flex-1 ml-2">{sub.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </nav>
         </div>

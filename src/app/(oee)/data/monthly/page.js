@@ -1,5 +1,5 @@
-// This route has been moved to /settings
 import { redirect } from "next/navigation";
+
 export default function Page() {
-  redirect("/settings");
+  redirect("/data/history");
 }

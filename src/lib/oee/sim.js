@@ -83,13 +83,17 @@ export function tickMachine(m, dtSec) {
     };
   }
 
-  // AUTO mode: ทำงานแบบสุ่มตามเดิม
+  // AUTO mode: ใช้ deterministic simulation สำหรับข้อมูลย้อนหลัง - ข้อมูลคงที่
   if (forcedStatus) status = forcedStatus;
   else {
+    // Use fixed seed for historical data - ไม่มีการสุ่มสำหรับข้อมูลย้อนหลัง
+    const deterministicSeed = m.id.charCodeAt(0) + 99999; // Fixed seed - ข้อมูลคงที่
+    const deterministicRandom = Math.abs(Math.sin(deterministicSeed) * 100) % 100;
+    
     if (status === "running") {
-      if (Math.random() < failRate * dtMin) {
+      if (deterministicRandom < failRate * dtMin * 100) {
         status = "breakdown";
-        repairTicksLeft = repairMin + Math.random() * (repairMax - repairMin);
+        repairTicksLeft = repairMin + (deterministicRandom / 100) * (repairMax - repairMin);
       }
     } else if (status === "breakdown") {
       repairTicksLeft -= dtSec;
@@ -98,11 +102,16 @@ export function tickMachine(m, dtSec) {
         repairTicksLeft = 0;
       }
     } else if (status === "idle") {
-      if (Math.random() < 0.12 * dtMin) status = "running";
+      if (deterministicRandom < 12 * dtMin * 100) status = "running";
     }
   }
 
-  const noise = (r) => (Math.random() - 0.5) * r;
+  const noise = (r) => {
+    // Use fixed noise for historical data - ข้อมูลคงที่สำหรับข้อมูลย้อนหลัง
+    const noiseSeed = m.id.charCodeAt(0) + 88888 + r; // Fixed seed - ไม่มีการสุ่ม
+    const deterministicNoise = Math.abs(Math.sin(noiseSeed) * 100) % 100;
+    return (deterministicNoise / 100 - 0.5) * r;
+  };
 
   let newAvail =
     status === "breakdown"

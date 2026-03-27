@@ -20,7 +20,7 @@ export default function DataEntryPage() {
 
   const activeShift = useMemo(() => getActiveShift(shifts, time), [shifts, time]);
 
-  if (!allowed.includes("data-entry")) {
+  if (!allowed.includes("settings")) {
     return (
       <div className="rounded-xl border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 p-10 text-center text-slate-400">
         <div className="text-4xl mb-2">🔒</div>

@@ -88,9 +88,11 @@ export function OEEProvider({ children, initialUser = null }) {
     setShiftHours(
       Array.from({ length: 8 }, (_, i) => {
         const h = 6 + i;
+        // Use deterministic variation based on hour
+        const deterministicVariation = 0.82 + (Math.abs(Math.sin(h * 100) * 100) % 100) * 0.0022;
         return {
           hour: `${h.toString().padStart(2, "0")}`,
-          output: Math.round(idealHr * (0.82 + Math.random() * 0.22)),
+          output: Math.round(idealHr * deterministicVariation),
           target: idealHr,
         };
       })
@@ -108,8 +110,10 @@ export function OEEProvider({ children, initialUser = null }) {
 
         if (tickRef.current % 8 === 0) {
           const idealHr = Math.round(next.reduce((s, m) => s + (60 / m.idealCT) * (m.basePerf / 100), 0));
+          // Use deterministic variation based on tick count
+          const deterministicVariation = 0.78 + (Math.abs(Math.sin(tickRef.current * 100) * 100) % 100) * 0.0026;
           setShiftHours((sh) =>
-            [...sh.slice(1), { hour: `${(6 + sh.length) % 24}`.padStart(2, "0"), output: Math.round(idealHr * (0.78 + Math.random() * 0.26)), target: idealHr }]
+            [...sh.slice(1), { hour: `${(6 + sh.length) % 24}`.padStart(2, "0"), output: Math.round(idealHr * deterministicVariation), target: idealHr }]
               .slice(-8)
           );
         }
@@ -129,8 +133,10 @@ export function OEEProvider({ children, initialUser = null }) {
         }
 
         if (tickRef.current % 12 === 0) {
+          // Use deterministic variation based on tick count for heat data
+          const deterministicChange = (Math.abs(Math.sin(tickRef.current * 50) * 100) % 100) - 50;
           setHeatData((hd) =>
-            hd.map((row) => row.map((v) => Math.round(Math.max(50, Math.min(99, v + (Math.random() - 0.5) * 2)) * 10) / 10))
+            hd.map((row) => row.map((v) => Math.round(Math.max(50, Math.min(99, v + deterministicChange * 0.02)) * 10) / 10))
           );
         }
 
