@@ -145,8 +145,8 @@ export default function MachineCtrlModal({ machine, onUpdate, onClose }) {
 
             {/* OEE Slider */}
             <div className={`space-y-2 transition-all ${!isManual ? 'grayscale opacity-50' : ''}`}>
-              <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-emerald-400">
-                <span>OEE Adjustment</span> <span>{oeeBase}%</span>
+              <div className="flex justify-between text-[12px] font-black uppercase tracking-widest text-emerald-400">
+                <span>OEE = <span className="text-[9px] text-slate-500"> ({aBase}% × {pBase}% × {qBase}%)/10,000 = {(!isManual ? ms.oee : finalOeeWidth.toFixed(1))}</span></span> <span>{oeeBase}%</span>
               </div>
               <div className="relative h-2 bg-slate-800/50 rounded-full">
                 <div className="absolute h-full bg-slate-700/20 rounded-full" style={{ width: `${qualWidth}%` }} />
