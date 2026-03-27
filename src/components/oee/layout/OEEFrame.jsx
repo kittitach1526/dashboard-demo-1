@@ -196,8 +196,8 @@ export default function OEEFrame({ children }) {
             <div className="flex items-center gap-2">
               <div className="text-[10px] hidden sm:block">
                 <span className="text-emerald-400"> {ms.filter((m) => m.status === "running").length} Run</span>
-                <span className="ml-2 text-red-400"> {ms.filter((m) => m.status === "breakdown").length} Down</span>
                 <span className="ml-2 text-amber-400"> {ms.filter((m) => m.status === "idle").length} Idle</span>
+                <span className="ml-2 text-red-400"> {ms.filter((m) => m.status === "breakdown").length} Down</span>
               </div>
 
               <div className="rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1 font-mono text-[10px] hidden sm:block">
