@@ -170,42 +170,87 @@ export default function MachineCtrlModal({ machine, onUpdate, onClose }) {
             <div className="space-y-2">
               <div className="flex justify-between items-end px-1">
                 <span className="text-[9px] font-bold text-slate-500 tracking-widest uppercase">Availability</span>
-                <span className="text-md font-mono font-bold text-orange-500">{aBase}%</span>
+                <span className={`text-md font-mono font-bold ${!isManual ? "text-slate-600" : "text-orange-500"}`}>
+                  {!isManual ? "AUTO" : `${aBase}%`}
+                </span>
               </div>
               <div className="relative h-1.5 bg-slate-800 rounded-full">
-                <div className="absolute h-full bg-orange-500 rounded-full" style={{ width: `${aBase}%` }} />
-                <input type="range" min="0" max="100" value={aBase} onChange={(e) => setABase(Number(e.target.value))} />
+                <div className={`absolute h-full rounded-full transition-all ${!isManual ? "bg-slate-600" : "bg-orange-500"}`} style={{ width: `${isManual ? aBase : 50}%` }} />
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="100" 
+                  value={aBase} 
+                  onChange={(e) => setABase(Number(e.target.value))} 
+                  disabled={!isManual}
+                  className={!isManual ? "cursor-not-allowed opacity-50" : ""}
+                />
               </div>
+              {!isManual && (
+                <div className="text-[9px] text-slate-500 text-center mt-1">
+                  Auto-controlled - Switch to Manual to adjust
+                </div>
+              )}
             </div>
 
             {/* Performance */}
             <div className="space-y-2">
               <div className="flex justify-between items-end px-1">
                 <span className="text-[9px] font-bold text-slate-500 tracking-widest uppercase">Performance</span>
-                <span className="text-md font-mono font-bold text-yellow-400">{pBase}%</span>
+                <span className={`text-md font-mono font-bold ${!isManual ? "text-slate-600" : "text-yellow-400"}`}>
+                  {!isManual ? "AUTO" : `${pBase}%`}
+                </span>
               </div>
               <div className="relative h-1.5 bg-slate-800/50 rounded-full">
-                <div className="absolute h-full bg-slate-700/30 rounded-full" style={{ width: `${aBase}%` }} />
-                <div className="absolute h-full bg-yellow-400 rounded-full" style={{ width: `${(pBase * aBase) / 100}%` }} />
-                <div className="absolute top-[-6px] h-4" style={{ width: `${aBase}%` }}>
-                  <input type="range" min="0" max="100" value={pBase} onChange={(e) => setPBase(Number(e.target.value))} />
+                <div className="absolute h-full bg-slate-700/30 rounded-full" style={{ width: `${isManual ? aBase : 50}%` }} />
+                <div className={`absolute h-full rounded-full transition-all ${!isManual ? "bg-slate-600" : "bg-yellow-400"}`} style={{ width: `${isManual ? (pBase * aBase) / 100 : 25}%` }} />
+                <div className="absolute top-[-6px] h-4" style={{ width: `${isManual ? aBase : 50}%` }}>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="100" 
+                    value={pBase} 
+                    onChange={(e) => setPBase(Number(e.target.value))} 
+                    disabled={!isManual}
+                    className={!isManual ? "cursor-not-allowed opacity-50" : ""}
+                  />
                 </div>
               </div>
+              {!isManual && (
+                <div className="text-[9px] text-slate-500 text-center mt-1">
+                  Auto-controlled - Switch to Manual to adjust
+                </div>
+              )}
             </div>
 
             {/* Quality */}
             <div className="space-y-2">
               <div className="flex justify-between items-end px-1">
                 <span className="text-[9px] font-bold text-slate-500 tracking-widest uppercase">Quality</span>
-                <span className="text-md font-mono font-bold text-blue-500">{qBase}%</span>
+                <span className={`text-md font-mono font-bold ${!isManual ? "text-slate-600" : "text-green-400"}`}>
+                  {!isManual ? "AUTO" : `${qBase}%`}
+                </span>
               </div>
               <div className="relative h-1.5 bg-slate-800/50 rounded-full">
-                <div className="absolute h-full bg-slate-700/30 rounded-full" style={{ width: `${(pBase * aBase) / 100}%` }} />
-                <div className="absolute h-full bg-blue-500 rounded-full" style={{ width: `${(qBase * pBase * aBase) / 10000}%` }} />
-                <div className="absolute top-[-6px] h-4" style={{ width: `${(pBase * aBase) / 100}%` }}>
-                  <input type="range" min="0" max="100" value={qBase} onChange={(e) => setQBase(Number(e.target.value))} />
+                <div className="absolute h-full bg-slate-700/30 rounded-full" style={{ width: `${isManual ? aBase : 50}%` }} />
+                <div className={`absolute h-full rounded-full transition-all ${!isManual ? "bg-slate-600" : "bg-green-400"}`} style={{ width: `${isManual ? (qBase * aBase) / 100 : 25}%` }} />
+                <div className="absolute top-[-6px] h-4" style={{ width: `${isManual ? aBase : 50}%` }}>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="100" 
+                    value={qBase} 
+                    onChange={(e) => setQBase(Number(e.target.value))} 
+                    disabled={!isManual}
+                    className={!isManual ? "cursor-not-allowed opacity-50" : ""}
+                  />
                 </div>
               </div>
+              {!isManual && (
+                <div className="text-[9px] text-slate-500 text-center mt-1">
+                  Auto-controlled - Switch to Manual to adjust
+                </div>
+              )}
             </div>
 
             {/* OEE Preview (Large Display) */}

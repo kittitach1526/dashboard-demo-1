@@ -665,62 +665,7 @@ export default function DataHistoryPage() {
             })}
           </div>
 
-          {/* Daily Details for Month */}
-          <div className="rounded-xl border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/70 shadow-xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-[var(--oee-border)]">
-              <p className="text-base text-slate-300">รายละเอียดรายวัน - เดือน <span className="text-sky-300">{monthStr}</span></p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[var(--oee-border)] bg-[var(--oee-surface)]/50">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">วันที่</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-400">Machine</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-slate-400">OEE%</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-slate-400">Avail%</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-slate-400">Perf%</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-slate-400">Qual%</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(() => {
-                    const currentDay = new Date().getDate();
-                    const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
-                    const rows = [];
-                    
-                    for (let day = 1; day <= daysInMonth; day++) {
-                      if (day > currentDay) break;
-                      
-                      ms.forEach((m) => {
-                        // Use historical data function for daily details
-                        const dayOffset = daysInMonth - day;
-                        const dayData = generateHistoricalData(m.id, dayOffset, Number(m.oee));
-                        
-                        rows.push(
-                          <tr key={`${day}-${m.id}`} className="border-b border-[var(--oee-border)]/30 hover:bg-[var(--oee-surface)]/20 transition">
-                            <td className="px-4 py-2 font-semibold text-slate-100">{day}</td>
-                            <td className="px-4 py-2 text-slate-300">
-                              <div>
-                                <p className="font-medium">{m.name}</p>
-                                <p className="text-xs text-slate-500">Line {m.line}</p>
-                              </div>
-                            </td>
-                            <td className="px-4 py-2 text-right font-mono font-bold text-sky-300">{dayData.oee}%</td>
-                            <td className="px-4 py-2 text-right font-mono text-emerald-300">{dayData.availability}%</td>
-                            <td className="px-4 py-2 text-right font-mono text-amber-300">{dayData.performance}%</td>
-                            <td className="px-4 py-2 text-right font-mono text-violet-300">{dayData.quality}%</td>
-                          </tr>
-                        );
-                      });
-                    }
-                    
-                    return rows;
-                  })()}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
+          
           {/* Weekly Summary */}
           <div className="rounded-xl border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/70 shadow-xl overflow-hidden">
             <div className="px-6 py-4 border-b border-[var(--oee-border)]">
@@ -980,60 +925,7 @@ export default function DataHistoryPage() {
             })}
           </div>
 
-          {/* Monthly Details for Year */}
-          <div className="rounded-xl border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/70 shadow-xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-[var(--oee-border)]">
-              <p className="text-base text-slate-300">รายละเอียดรายเดือน - ปี <span className="text-sky-300">{year + 543}</span></p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[var(--oee-border)] bg-[var(--oee-surface)]/50">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">เดือน</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-400">Machine</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-slate-400">OEE%</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-slate-400">Avail%</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-slate-400">Perf%</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-slate-400">Qual%</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(() => {
-                    const currentMonth = new Date().getMonth();
-                    const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
-                    const rows = [];
-                    
-                    for (let month = 0; month <= currentMonth; month++) {
-                      ms.forEach((m) => {
-                        // Use historical data function for monthly details
-                        const monthOffset = (currentMonth - month) * 30;
-                        const monthData = generateHistoricalData(m.id, monthOffset, Number(m.oee));
-                        
-                        rows.push(
-                          <tr key={`${month}-${m.id}`} className="border-b border-[var(--oee-border)]/30 hover:bg-[var(--oee-surface)]/20 transition">
-                            <td className="px-4 py-2 font-semibold text-slate-100">{monthNames[month]}</td>
-                            <td className="px-4 py-2 text-slate-300">
-                              <div>
-                                <p className="font-medium">{m.name}</p>
-                                <p className="text-xs text-slate-500">Line {m.line}</p>
-                              </div>
-                            </td>
-                            <td className="px-4 py-2 text-right font-mono font-bold text-sky-300">{monthData.oee}%</td>
-                            <td className="px-4 py-2 text-right font-mono text-emerald-300">{monthData.availability}%</td>
-                            <td className="px-4 py-2 text-right font-mono text-amber-300">{monthData.performance}%</td>
-                            <td className="px-4 py-2 text-right font-mono text-violet-300">{monthData.quality}%</td>
-                          </tr>
-                        );
-                      });
-                    }
-                    
-                    return rows;
-                  })()}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
+          
           {/* Yearly Summary Table */}
           <div className="rounded-xl border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/70 shadow-xl overflow-hidden">
             <div className="px-6 py-4 border-b border-[var(--oee-border)]">
