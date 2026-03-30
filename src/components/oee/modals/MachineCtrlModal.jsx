@@ -10,6 +10,7 @@ export default function MachineCtrlModal({ machine, onUpdate, onClose }) {
   const [qBase, setQBase] = useState(machine.baseQual || 78);
   const [oeeBase, setOeeBase] = useState(100); 
   const [isManual, setIsManual] = useState(!!ms.forcedStatus);
+  const [manualReason, setManualReason] = useState(machine.manualReason || "");
 
   useEffect(() => {
     setIsManual(!!ms.forcedStatus);
@@ -31,6 +32,7 @@ export default function MachineCtrlModal({ machine, onUpdate, onClose }) {
         basePerf: pBase,
         baseQual: qBase,
         forcedStatus: ms.forcedStatus || currentManualStatus,
+        manualReason: manualReason || null,
         availability: aBase,
         performance: pBase,
         quality: qBase,
@@ -41,7 +43,7 @@ export default function MachineCtrlModal({ machine, onUpdate, onClose }) {
       onUpdate(updateData);
     } else {
       // โหมด Auto: ส่งค่า null กลับไปเพื่อให้ระบบจำลอง (Simulation) ทำงานต่อเอง
-      onUpdate({ ...ms, forcedStatus: null, speed: 1 });
+      onUpdate({ ...ms, forcedStatus: null, manualReason: null, speed: 1 });
     }
     onClose();
   };
@@ -68,7 +70,7 @@ export default function MachineCtrlModal({ machine, onUpdate, onClose }) {
         <div className="flex justify-center">
           <div className="bg-slate-800/80 p-1 rounded-xl border border-white/5 flex gap-1">
             <button 
-              onClick={() => { setIsManual(false); setMs(prev => ({ ...prev, forcedStatus: null })); }}
+              onClick={() => { setIsManual(false); setManualReason(""); setMs(prev => ({ ...prev, forcedStatus: null })); }}
               className={`px-6 py-2 text-[10px] font-black rounded-lg transition-all ${!isManual ? "bg-blue-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-400"}`}
             >
               AUTO MODE
@@ -101,6 +103,25 @@ export default function MachineCtrlModal({ machine, onUpdate, onClose }) {
               );
             })}
           </div>
+
+          {isManual && (
+            <div className="mb-6">
+              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">เหตุผล (Manual)</div>
+              <select
+                value={manualReason}
+                onChange={(e) => setManualReason(e.target.value)}
+                className="w-full rounded-xl border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-3 py-2 text-sm text-slate-100 outline-none focus:border-sky-500"
+              >
+                <option value="">- เลือกสาเหตุ -</option>
+                <option value="ปรับตั้งค่าเครื่อง">ปรับตั้งค่าเครื่อง</option>
+                <option value="ทดสอบ/ยืนยันการผลิต">ทดสอบ/ยืนยันการผลิต</option>
+                <option value="ปัญหาคุณภาพ">ปัญหาคุณภาพ</option>
+                <option value="ขาดวัตถุดิบ">ขาดวัตถุดิบ</option>
+                <option value="ซ่อมบำรุง">ซ่อมบำรุง</option>
+                <option value="อื่นๆ">อื่นๆ</option>
+              </select>
+            </div>
+          )}
 
           {/* Sliders Area */}
           <div className="space-y-5">
