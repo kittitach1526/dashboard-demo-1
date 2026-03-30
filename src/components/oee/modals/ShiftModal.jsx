@@ -5,6 +5,20 @@ import { useState } from "react";
 import ModalShell from "@/components/oee/modals/ModalShell";
 
 const DEFAULT_SHIFT_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
+const SHIFT_COLOR_SWATCHES = [
+  "#3b82f6",
+  "#22c55e",
+  "#10b981",
+  "#14b8a6",
+  "#06b6d4",
+  "#0ea5e9",
+  "#6366f1",
+  "#8b5cf6",
+  "#a78bfa",
+  "#f59e0b",
+  "#f97316",
+  "#ef4444",
+];
 
 export default function ShiftModal({ shifts, onSave, onClose }) {
   const [local, setLocal] = useState(
@@ -17,7 +31,7 @@ export default function ShiftModal({ shifts, onSave, onClose }) {
   const upd = (i, k, v) => setLocal((prev) => prev.map((s, idx) => (idx === i ? { ...s, [k]: v } : s)));
 
   return (
-    <ModalShell title="⏰ กำหนดการทำงานกะ (4 กะ)" onClose={onClose} widthClass="w-[680px]">
+    <ModalShell title="⏰ กำหนดการทำงานกะ (4 กะ)" onClose={onClose} widthClass="w-[560px]">
       <div className="space-y-3">
         {local.map((s, i) => (
           <div
@@ -96,21 +110,28 @@ export default function ShiftModal({ shifts, onSave, onClose }) {
               </div>
               <div>
                 <div className="mb-1 text-[10px] uppercase tracking-wider text-slate-500">สีประจำกะ</div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={s.color || "#3b82f6"}
-                    onChange={(e) => upd(i, "color", e.target.value)}
-                    className="h-8 w-8 rounded border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/70 cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={s.color || "#3b82f6"}
-                    onChange={(e) => upd(i, "color", e.target.value)}
-                    className="flex-1 rounded-lg border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/70 px-2 py-1 text-sm text-slate-100 outline-none focus:border-sky-500 font-mono"
-                    placeholder="#3b82f6"
-                  />
+                <div className="flex flex-wrap items-center gap-2">
+                  {SHIFT_COLOR_SWATCHES.map((c) => {
+                    const active = (s.color || "").toLowerCase() === c.toLowerCase();
+                    return (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => upd(i, "color", c)}
+                        className={
+                          "h-7 w-7 rounded-full border transition-all " +
+                          (active
+                            ? "border-white/70 ring-2 ring-white/20"
+                            : "border-white/10 hover:border-white/30")
+                        }
+                        style={{ backgroundColor: c }}
+                        title={c}
+                        aria-label={`Select color ${c}`}
+                      />
+                    );
+                  })}
                 </div>
+                <div className="mt-2 font-mono text-[10px] text-slate-500">{s.color || "#3b82f6"}</div>
               </div>
             </div>
           </div>

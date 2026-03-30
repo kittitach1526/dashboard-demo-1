@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { USERS, ROLE_COLOR } from "@/lib/oee/constants";
 
 export default function LoginScreen({ onLogin }) {
@@ -8,12 +8,25 @@ export default function LoginScreen({ onLogin }) {
   const [p, setP] = useState("");
   const [err, setErr] = useState("");
   const [load, setLoad] = useState(false);
+  const [users, setUsers] = useState(USERS);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("oee:users");
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return;
+      setUsers(parsed);
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const go = () => {
     setLoad(true);
     setErr("");
     setTimeout(() => {
-      const user = USERS.find((x) => x.username === u && x.password === p);
+      const user = users.find((x) => x.username === u && x.password === p);
       if (user) onLogin(user);
       else {
         setErr("Invalid username or password");
@@ -94,7 +107,7 @@ export default function LoginScreen({ onLogin }) {
           <div className="mt-4 rounded-lg bg-[var(--oee-surface-2)]/60 border border-[var(--oee-border)] p-3">
             <div className="text-[9px] text-slate-500 mb-2 tracking-wider">DEMO ACCOUNTS</div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {USERS.map((us) => (
+              {users.map((us) => (
                 <button
                   key={us.id}
                   onClick={() => {

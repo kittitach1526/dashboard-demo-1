@@ -10,7 +10,6 @@ import RefreshSelector from "@/components/oee/ui/RefreshSelector";
 import ExportModal from "@/components/oee/modals/ExportModal";
 import ShiftModal from "@/components/oee/modals/ShiftModal";
 import DataEntryModal from "@/components/oee/modals/DataEntryModal";
-import UserSettingsModal from "@/components/oee/modals/UserSettingsModal";
 
 export default function OEEFrame({ children }) {
   const router = useRouter();
@@ -21,11 +20,11 @@ export default function OEEFrame({ children }) {
   const [showShift, setShowShift] = useState(false);
   const [showEntry, setShowEntry] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showUserSettings, setShowUserSettings] = useState(false);
   const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [dataMenuOpen, setDataMenuOpen] = useState(false);
+  const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!user) router.replace("/login");
@@ -43,7 +42,7 @@ export default function OEEFrame({ children }) {
 
   const tabs = [
     { key: "overview", label: "Overview", icon: "⬡" },
-    { key: "equipment", label: "Equipment", icon: "🏭" },
+    { key: "equipment", label: "Process", icon: "🏭" },
     { key: "availability", label: "Availability", icon: "⏱️" },
     { key: "performance", label: "Performance", icon: "🚀" },
     { key: "quality", label: "Quality", icon: "✅" },
@@ -97,27 +96,29 @@ export default function OEEFrame({ children }) {
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto p-4">
             <div className="space-y-2">
-              {tabs.filter((t) => allowed.includes(t.key)).map((t) => {
-                const href = `/${t.key}`;
-                const active = pathname === href;
-                return (
-                  <Link
-                    key={t.key}
-                    href={href}
-                    onClick={() => setSidebarOpen(false)}
-                    className={
-                      "flex items-center justify-center rounded-lg px-3 py-2 text-[11px] transition " +
-                      (active
-                        ? "bg-[var(--oee-surface-2)]/70 text-sky-200 border border-sky-500/30"
-                        : "text-slate-400 hover:bg-[var(--oee-surface-2)]/40 hover:text-slate-200")
-                    }
-                    title={sidebarCollapsed ? t.label : undefined}
-                  >
-                    <span className="text-lg">{t.icon}</span>
-                    <span className={`${sidebarCollapsed ? 'lg:hidden' : ''} flex-1 ml-3`}>{t.label}</span>
-                  </Link>
-                );
-              })}
+              {tabs
+                .filter((t) => allowed.includes(t.key) && t.key !== "settings")
+                .map((t) => {
+                  const href = `/${t.key}`;
+                  const active = pathname === href;
+                  return (
+                    <Link
+                      key={t.key}
+                      href={href}
+                      onClick={() => setSidebarOpen(false)}
+                      className={
+                        "flex items-center justify-center rounded-lg px-3 py-2 text-[11px] transition " +
+                        (active
+                          ? "bg-[var(--oee-surface-2)]/70 text-sky-200 border border-sky-500/30"
+                          : "text-slate-400 hover:bg-[var(--oee-surface-2)]/40 hover:text-slate-200")
+                      }
+                      title={sidebarCollapsed ? t.label : undefined}
+                    >
+                      <span className="text-lg">{t.icon}</span>
+                      <span className={`${sidebarCollapsed ? 'lg:hidden' : ''} flex-1 ml-3`}>{t.label}</span>
+                    </Link>
+                  );
+                })}
 
               {/* Data Menu with Sub-menus */}
               {allowed.includes("data") && (
@@ -165,6 +166,86 @@ export default function OEEFrame({ children }) {
               )}
             </div>
           </nav>
+
+          {/* Settings (Bottom) */}
+          {user?.role === "admin" && allowed.includes("settings") && (
+            <div className="p-4">
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    if (sidebarCollapsed) setSidebarCollapsed(false);
+                    setSettingsMenuOpen((v) => !v);
+                  }}
+                  className={
+                    "flex items-center justify-center rounded-lg px-3 py-2 text-[11px] transition w-full " +
+                    ((pathname.startsWith("/settings") || pathname.startsWith("/user-management"))
+                      ? "bg-[var(--oee-surface-2)]/70 text-sky-200 border border-sky-500/30"
+                      : "text-slate-400 hover:bg-[var(--oee-surface-2)]/40 hover:text-slate-200")
+                  }
+                  title={sidebarCollapsed ? "Setting" : undefined}
+                >
+                  <span className="text-lg">⚙️</span>
+                  <span className={`${sidebarCollapsed ? 'lg:hidden' : ''} flex-1 ml-3 text-left`}>Setting</span>
+                  <span
+                    className={`${sidebarCollapsed ? 'lg:hidden' : ''} text-[10px] text-slate-500 transition-transform ${settingsMenuOpen ? 'rotate-180' : ''}`}
+                  >
+                    ▼
+                  </span>
+                </button>
+
+                {settingsMenuOpen && !sidebarCollapsed && (
+                  <div className="ml-4 space-y-1 border-l border-[var(--oee-border)] pl-3">
+                    <Link
+                      href="/settings"
+                      onClick={() => setSidebarOpen(false)}
+                      className={
+                        "flex items-center rounded-lg px-3 py-1.5 text-[11px] transition " +
+                        (pathname === "/settings"
+                          ? "bg-[var(--oee-surface-2)]/70 text-sky-200 border border-sky-500/30"
+                          : "text-slate-400 hover:bg-[var(--oee-surface-2)]/40 hover:text-slate-200")
+                      }
+                    >
+                      <span className="text-sm">⏰</span>
+                      <span className="flex-1 ml-2">กะการทำงาน / Data Entry</span>
+                    </Link>
+
+                    {allowed.includes("user-management") && (
+                      <Link
+                        href="/user-management"
+                        onClick={() => setSidebarOpen(false)}
+                        className={
+                          "flex items-center rounded-lg px-3 py-1.5 text-[11px] transition " +
+                          (pathname === "/user-management"
+                            ? "bg-[var(--oee-surface-2)]/70 text-sky-200 border border-sky-500/30"
+                            : "text-slate-400 hover:bg-[var(--oee-surface-2)]/40 hover:text-slate-200")
+                        }
+                      >
+                        <span className="text-sm">👥</span>
+                        <span className="flex-1 ml-2">User Management</span>
+                      </Link>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Logout (Bottom) */}
+          <div className="mt-2 border-t border-[var(--oee-border)] p-4 pt-2">
+            <button
+              onClick={() => {
+                setSidebarOpen(false);
+                setUser(null);
+              }}
+              className={
+                "flex w-full items-center justify-center rounded-lg px-3 py-2 text-[11px] transition border border-red-500/20 bg-red-950/10 text-red-300 hover:bg-red-950/20"
+              }
+              title={sidebarCollapsed ? "Logout" : undefined}
+            >
+              <span className="text-lg">⏻</span>
+              <span className={`${sidebarCollapsed ? 'lg:hidden' : ''} flex-1 ml-3 text-left`}>Logout</span>
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -190,10 +271,13 @@ export default function OEEFrame({ children }) {
               </button>
               {sidebarCollapsed && <img src="/Logo.png" alt="FOSTEC" className="hidden lg:block h-7 object-contain" />}
               <div className="hidden lg:block h-5 w-px bg-[var(--oee-border)]" />
-              <div className="hidden lg:block text-[10px] uppercase tracking-[0.12em] text-slate-500">Factory Intelligence</div>
+              <div className="hidden lg:block leading-tight">
+                <div className="text-[13px] font-extrabold tracking-wide text-slate-100">OEE Monitor</div>
+                <div className="text-[10px] uppercase tracking-[0.22em] text-slate-500">INTELLIGENT MANAGEMENT 4.0</div>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <div className="text-[10px] hidden sm:block">
                 <span className="text-emerald-400"> {ms.filter((m) => m.status === "running").length} Run</span>
                 <span className="ml-2 text-amber-400"> {ms.filter((m) => m.status === "idle").length} Idle</span>
@@ -236,9 +320,13 @@ export default function OEEFrame({ children }) {
                 <RefreshSelector interval={refreshInt} onChange={setRefreshInt} />
               </div>
 
-              <div className="w-full sm:w-auto sm:min-w-[180px] rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1 text-center font-mono text-[10px] sm:text-[11px] text-sky-300">
-                {time.toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" })}{" "}
-                {time.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+              <div className="shrink-0 text-center">
+                <div className="font-mono text-[17px] sm:text-[20px] font-extrabold leading-none text-slate-100">
+                  {time.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}
+                </div>
+                <div className="mt-1 text-[8px] font-medium text-slate-400 leading-none">
+                  {time.toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })}
+                </div>
               </div>
 
               <div className="relative">
@@ -277,7 +365,7 @@ export default function OEEFrame({ children }) {
                         <button
                           onClick={() => {
                             setShowUserMenu(false);
-                            setShowUserSettings(true);
+                            router.push("/user-settings");
                           }}
                           className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm text-slate-300 hover:bg-slate-700/50 transition-colors"
                         >
@@ -369,13 +457,6 @@ export default function OEEFrame({ children }) {
         />
       )}
       {showExport && <ExportModal onClose={() => setShowExport(false)} machines={ms} kpi={kpi} />}
-      {showUserSettings && (
-        <UserSettingsModal
-          user={{ ...user, roleColor: ROLE_COLOR[user.role] }}
-          onUpdate={(updatedUser) => setUser(updatedUser)}
-          onClose={() => setShowUserSettings(false)}
-        />
-      )}
     </div>
   );
 }
