@@ -32,12 +32,12 @@ export const DEFAULT_SHIFTS = [
 ];
 
 export const MACHINE_DEFS = [
-  { id: "M01", name: "CNC-01", line: "A", baseAvail: 92, basePerf: 91, baseQual: 97, failRate: 0.04, repairMin: 15, repairMax: 40 },
-  { id: "M02", name: "Press-02", line: "A", baseAvail: 78, basePerf: 88, baseQual: 95, failRate: 0.07, repairMin: 20, repairMax: 60 },
-  { id: "M03", name: "Lathe-03", line: "B", baseAvail: 52, basePerf: 81, baseQual: 93, failRate: 0.12, repairMin: 30, repairMax: 90 },
-  { id: "M04", name: "Weld-04", line: "B", baseAvail: 95, basePerf: 94, baseQual: 98, failRate: 0.02, repairMin: 10, repairMax: 25 },
-  { id: "M05", name: "Assy-05", line: "C", baseAvail: 85, basePerf: 77, baseQual: 96, failRate: 0.06, repairMin: 15, repairMax: 45 },
-  { id: "M06", name: "Paint-06", line: "C", baseAvail: 88, basePerf: 86, baseQual: 97, failRate: 0.05, repairMin: 12, repairMax: 35 },
+  { id: "M01", name: "Inbound & Storage", line: "A", baseAvail: 92, basePerf: 91, baseQual: 97, failRate: 0.04, repairMin: 15, repairMax: 40 },
+  { id: "M02", name: "Feeding / Material Handling", line: "A", baseAvail: 78, basePerf: 88, baseQual: 95, failRate: 0.07, repairMin: 20, repairMax: 60 },
+  { id: "M03", name: "Sorting & Cleaning", line: "B", baseAvail: 52, basePerf: 81, baseQual: 93, failRate: 0.12, repairMin: 30, repairMax: 90 },
+  { id: "M04", name: "Packaging", line: "B", baseAvail: 95, basePerf: 94, baseQual: 98, failRate: 0.02, repairMin: 10, repairMax: 25 },
+  { id: "M05", name: "QC & Dispatch", line: "C", baseAvail: 85, basePerf: 77, baseQual: 96, failRate: 0.06, repairMin: 15, repairMax: 45 },
+  // { id: "M06", name: "Paint-06", line: "C", baseAvail: 88, basePerf: 86, baseQual: 97, failRate: 0.05, repairMin: 12, repairMax: 35 },
 ];
 
 export const REFRESH_OPTIONS = [
