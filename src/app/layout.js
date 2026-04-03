@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import Script from "next/script";
 import { OEEProvider } from "@/components/oee/OEEContext";
 import "./globals.css";
 
@@ -23,6 +24,14 @@ export default async function RootLayout({ children }) {
       className="h-full antialiased"
     >
       <body className="min-h-full flex flex-col">
+        <Script
+          id="oee-theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var t=localStorage.getItem('oee:theme')||'auto';var el=document.documentElement;if(t==='dark'||t==='light'){el.setAttribute('data-theme',t);}else{el.removeAttribute('data-theme');}}catch(e){}})();",
+          }}
+        />
         <OEEProvider initialUser={initialUser}>{children}</OEEProvider>
       </body>
     </html>

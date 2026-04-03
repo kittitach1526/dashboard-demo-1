@@ -1,16 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  --background: #070d19;
-  --foreground: #f1f5f9;
-  --oee-surface: #0f1e33;
-  --oee-surface-2: #0a1220;
-  --oee-border: #1e293b;
-  --oee-border-2: #1e3a5f;
-  --oee-text-heading: #f8fafc;
-  --oee-text-body: #e2e8f0;
-  --oee-text-muted: #94a3b8;
-  --oee-text-subtle: #64748b;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --oee-surface: #ffffff;
+  --oee-surface-2: #f1f5f9;
+  --oee-border: #cbd5e1;
+  --oee-border-2: #94a3b8;
+  --oee-text-heading: #0f172a;
+  --oee-text-body: #334155;
+  --oee-text-muted: #64748b;
+  --oee-text-subtle: #94a3b8;
+
+  --oee-nav-grad-from: #ffffff;
+  --oee-nav-grad-via: #ffffff;
+  --oee-nav-grad-to: #ffffff;
+  --oee-nav-title: #0f172a;
+  --oee-nav-subtitle: #64748b;
+  --oee-nav-link: #334155;
+  --oee-nav-link-hover: #0f172a;
+  --oee-nav-link-active: #0369a1;
+  --oee-nav-chip-text: #0f172a;
 }
 
 @theme inline {
@@ -24,20 +34,96 @@
   :root {
     --background: #070d19;
     --foreground: #f1f5f9;
+    --oee-surface: #0f1e33;
+    --oee-surface-2: #0a1220;
+    --oee-border: #1e293b;
+    --oee-border-2: #1e3a5f;
+    --oee-text-heading: #f8fafc;
+    --oee-text-body: #e2e8f0;
+    --oee-text-muted: #94a3b8;
+    --oee-text-subtle: #64748b;
+
+    --oee-nav-grad-from: #0b1426;
+    --oee-nav-grad-via: #0d1b35;
+    --oee-nav-grad-to: #0d1b35;
+    --oee-nav-title: #f8fafc;
+    --oee-nav-subtitle: #64748b;
+    --oee-nav-link: #94a3b8;
+    --oee-nav-link-hover: #e2e8f0;
+    --oee-nav-link-active: #7dd3fc;
+    --oee-nav-chip-text: #e2e8f0;
   }
+}
+
+html[data-theme="light"] {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --oee-surface: #ffffff;
+  --oee-surface-2: #f1f5f9;
+  --oee-border: #cbd5e1;
+  --oee-border-2: #94a3b8;
+  --oee-text-heading: #0f172a;
+  --oee-text-body: #334155;
+  --oee-text-muted: #64748b;
+  --oee-text-subtle: #94a3b8;
+
+  --oee-nav-grad-from: #ffffff;
+  --oee-nav-grad-via: #ffffff;
+  --oee-nav-grad-to: #ffffff;
+  --oee-nav-title: #0f172a;
+  --oee-nav-subtitle: #64748b;
+  --oee-nav-link: #334155;
+  --oee-nav-link-hover: #0f172a;
+  --oee-nav-link-active: #0369a1;
+  --oee-nav-chip-text: #0f172a;
+}
+
+html[data-theme="dark"] {
+  --background: #070d19;
+  --foreground: #f1f5f9;
+  --oee-surface: #0f1e33;
+  --oee-surface-2: #0a1220;
+  --oee-border: #1e293b;
+  --oee-border-2: #1e3a5f;
+  --oee-text-heading: #f8fafc;
+  --oee-text-body: #e2e8f0;
+  --oee-text-muted: #94a3b8;
+  --oee-text-subtle: #64748b;
+
+  --oee-nav-grad-from: #0b1426;
+  --oee-nav-grad-via: #0d1b35;
+  --oee-nav-grad-to: #0d1b35;
+  --oee-nav-title: #f8fafc;
+  --oee-nav-subtitle: #64748b;
+  --oee-nav-link: #94a3b8;
+  --oee-nav-link-hover: #e2e8f0;
+  --oee-nav-link-active: #7dd3fc;
+  --oee-nav-chip-text: #e2e8f0;
 }
 
 /* Global text color improvements */
 .text-slate-500 {
-  color: #cbd5e1 !important;
+  color: var(--oee-text-muted) !important;
 }
 
 .text-slate-400 {
-  color: #d1d5db !important;
+  color: var(--oee-text-body) !important;
 }
 
 .text-slate-300 {
-  color: #f3f4f6 !important;
+  color: var(--oee-text-body) !important;
+}
+
+.text-slate-200 {
+  color: var(--oee-text-body) !important;
+}
+
+.text-slate-100 {
+  color: var(--oee-text-heading) !important;
+}
+
+.text-white {
+  color: var(--oee-text-heading) !important;
 }
 
 body {

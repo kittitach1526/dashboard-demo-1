@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useOEE } from "@/components/oee/OEEContext";
@@ -35,6 +35,28 @@ export default function UserSettingsPage() {
   const [address, setAddress] = useState(initial.address);
   const [avatar, setAvatar] = useState(initial.avatar);
   const [profileImage, setProfileImage] = useState(initial.profileImage);
+  const [theme, setTheme] = useState("auto");
+
+  useEffect(() => {
+    try {
+      const t = localStorage.getItem("oee:theme") || "auto";
+      setTheme(t);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("oee:theme", theme);
+    } catch {
+      // ignore
+    }
+    if (typeof document === "undefined") return;
+    const el = document.documentElement;
+    if (theme === "dark" || theme === "light") el.setAttribute("data-theme", theme);
+    else el.removeAttribute("data-theme");
+  }, [theme]);
 
   const displayName = `${firstName} ${lastName}`.trim() || user?.name || "";
 
@@ -91,6 +113,19 @@ export default function UserSettingsPage() {
 
             <div className="mt-3 rounded-xl border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 p-4">
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">Profile</div>
+
+              <div className="mt-3">
+                <label className="block text-[10px] font-bold text-slate-500 tracking-widest uppercase mb-2">Theme</label>
+                <select
+                  value={theme}
+                  onChange={(e) => setTheme(e.target.value)}
+                  className="w-full rounded-lg border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-3 py-2 text-sm text-[var(--foreground)] outline-none focus:border-sky-500"
+                >
+                  <option value="auto">Auto (System)</option>
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                </select>
+              </div>
 
               <div className="mt-3">
                 <label className="block text-[10px] font-bold text-slate-500 tracking-widest uppercase mb-2">Profile Image URL</label>

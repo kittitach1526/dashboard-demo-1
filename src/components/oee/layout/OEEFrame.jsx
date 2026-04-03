@@ -60,14 +60,14 @@ export default function OEEFrame({ children }) {
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex">
       {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:fixed inset-y-0 left-0 z-30 ${sidebarCollapsed ? 'lg:w-16' : 'lg:w-64'} border-r border-[var(--oee-border)] bg-gradient-to-b from-[#0b1426] to-[#0d1b35] transition-all duration-300 ease-in-out h-screen`}>
+      <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:fixed inset-y-0 left-0 z-30 ${sidebarCollapsed ? 'lg:w-16' : 'lg:w-64'} border-r border-[var(--oee-border)] bg-gradient-to-b from-[var(--oee-nav-grad-from)] via-[var(--oee-nav-grad-via)] to-[var(--oee-nav-grad-to)] transition-all duration-300 ease-in-out h-screen`}>
         <div className="flex h-full flex-col">
           {/* Sidebar Header */}
           <div className="flex items-center justify-between p-4 border-b border-[var(--oee-border)]">
             <div className={`${sidebarCollapsed ? 'lg:flex' : 'lg:hidden'} hidden items-center justify-center`}>
               <button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 p-1 text-slate-400 hover:text-slate-200"
+                className="rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 p-1 text-[var(--oee-nav-link)] hover:text-[var(--oee-nav-link-hover)]"
                 title="Expand sidebar"
               >
                 ☰
@@ -79,14 +79,14 @@ export default function OEEFrame({ children }) {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className={`${sidebarCollapsed ? 'lg:hidden' : ''} hidden lg:block rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 p-1 text-slate-400 hover:text-slate-200`}
+                className={`${sidebarCollapsed ? 'lg:hidden' : ''} hidden lg:block rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 p-1 text-[var(--oee-nav-link)] hover:text-[var(--oee-nav-link-hover)]`}
                 title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               >
                 {sidebarCollapsed ? '☰' : '◀'}
               </button>
               <button
                 onClick={() => setSidebarOpen(false)}
-                className="lg:hidden rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 p-1 text-slate-400 hover:text-slate-200"
+                className="lg:hidden rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 p-1 text-[var(--oee-nav-link)] hover:text-[var(--oee-nav-link-hover)]"
               >
                 ✕
               </button>
@@ -109,8 +109,8 @@ export default function OEEFrame({ children }) {
                       className={
                         "flex items-center justify-center rounded-lg px-3 py-2 text-[11px] transition " +
                         (active
-                          ? "bg-[var(--oee-surface-2)]/70 text-sky-200 border border-sky-500/30"
-                          : "text-slate-400 hover:bg-[var(--oee-surface-2)]/40 hover:text-slate-200")
+                          ? "bg-[var(--oee-surface-2)]/70 text-[var(--oee-nav-link-active)] border border-sky-500/30"
+                          : "text-[var(--oee-nav-link)] hover:bg-[var(--oee-surface-2)]/40 hover:text-[var(--oee-nav-link-hover)]")
                       }
                       title={sidebarCollapsed ? t.label : undefined}
                     >
@@ -128,14 +128,14 @@ export default function OEEFrame({ children }) {
                     className={
                       "flex items-center justify-center rounded-lg px-3 py-2 text-[11px] transition w-full " +
                       (pathname.startsWith("/data")
-                        ? "bg-[var(--oee-surface-2)]/70 text-sky-200 border border-sky-500/30"
-                        : "text-slate-400 hover:bg-[var(--oee-surface-2)]/40 hover:text-slate-200")
+                        ? "bg-[var(--oee-surface-2)]/70 text-[var(--oee-nav-link-active)] border border-sky-500/30"
+                        : "text-[var(--oee-nav-link)] hover:bg-[var(--oee-surface-2)]/40 hover:text-[var(--oee-nav-link-hover)]")
                     }
                     title={sidebarCollapsed ? "Data" : undefined}
                   >
                     <span className="text-lg">💾</span>
                     <span className={`${sidebarCollapsed ? 'lg:hidden' : ''} flex-1 ml-3 text-left`}>Data</span>
-                    <span className={`${sidebarCollapsed ? 'lg:hidden' : ''} text-[10px] text-slate-500 transition-transform ${dataMenuOpen ? 'rotate-180' : ''}`}>▼</span>
+                    <span className={`${sidebarCollapsed ? 'lg:hidden' : ''} text-[10px] text-[var(--oee-text-muted)] transition-transform ${dataMenuOpen ? 'rotate-180' : ''}`}>▼</span>
                   </button>
 
                   {dataMenuOpen && !sidebarCollapsed && (
@@ -151,8 +151,8 @@ export default function OEEFrame({ children }) {
                             className={
                               "flex items-center rounded-lg px-3 py-1.5 text-[11px] transition " +
                               (active
-                                ? "bg-[var(--oee-surface-2)]/70 text-sky-200 border border-sky-500/30"
-                                : "text-slate-400 hover:bg-[var(--oee-surface-2)]/40 hover:text-slate-200")
+                                ? "bg-[var(--oee-surface-2)]/70 text-[var(--oee-nav-link-active)] border border-sky-500/30"
+                                : "text-[var(--oee-nav-link)] hover:bg-[var(--oee-surface-2)]/40 hover:text-[var(--oee-nav-link-hover)]")
                             }
                           >
                             <span className="text-sm">{sub.icon}</span>
@@ -179,15 +179,15 @@ export default function OEEFrame({ children }) {
                   className={
                     "flex items-center justify-center rounded-lg px-3 py-2 text-[11px] transition w-full " +
                     ((pathname.startsWith("/settings") || pathname.startsWith("/user-management"))
-                      ? "bg-[var(--oee-surface-2)]/70 text-sky-200 border border-sky-500/30"
-                      : "text-slate-400 hover:bg-[var(--oee-surface-2)]/40 hover:text-slate-200")
+                      ? "bg-[var(--oee-surface-2)]/70 text-[var(--oee-nav-link-active)] border border-sky-500/30"
+                      : "text-[var(--oee-nav-link)] hover:bg-[var(--oee-surface-2)]/40 hover:text-[var(--oee-nav-link-hover)]")
                   }
                   title={sidebarCollapsed ? "Setting" : undefined}
                 >
                   <span className="text-lg">⚙️</span>
                   <span className={`${sidebarCollapsed ? 'lg:hidden' : ''} flex-1 ml-3 text-left`}>Setting</span>
                   <span
-                    className={`${sidebarCollapsed ? 'lg:hidden' : ''} text-[10px] text-slate-500 transition-transform ${settingsMenuOpen ? 'rotate-180' : ''}`}
+                    className={`${sidebarCollapsed ? 'lg:hidden' : ''} text-[10px] text-[var(--oee-text-muted)] transition-transform ${settingsMenuOpen ? 'rotate-180' : ''}`}
                   >
                     ▼
                   </span>
@@ -201,8 +201,8 @@ export default function OEEFrame({ children }) {
                       className={
                         "flex items-center rounded-lg px-3 py-1.5 text-[11px] transition " +
                         (pathname === "/settings"
-                          ? "bg-[var(--oee-surface-2)]/70 text-sky-200 border border-sky-500/30"
-                          : "text-slate-400 hover:bg-[var(--oee-surface-2)]/40 hover:text-slate-200")
+                          ? "bg-[var(--oee-surface-2)]/70 text-[var(--oee-nav-link-active)] border border-sky-500/30"
+                          : "text-[var(--oee-nav-link)] hover:bg-[var(--oee-surface-2)]/40 hover:text-[var(--oee-nav-link-hover)]")
                       }
                     >
                       <span className="text-sm">⏰</span>
@@ -216,8 +216,8 @@ export default function OEEFrame({ children }) {
                         className={
                           "flex items-center rounded-lg px-3 py-1.5 text-[11px] transition " +
                           (pathname === "/user-management"
-                            ? "bg-[var(--oee-surface-2)]/70 text-sky-200 border border-sky-500/30"
-                            : "text-slate-400 hover:bg-[var(--oee-surface-2)]/40 hover:text-slate-200")
+                            ? "bg-[var(--oee-surface-2)]/70 text-[var(--oee-nav-link-active)] border border-sky-500/30"
+                            : "text-[var(--oee-nav-link)] hover:bg-[var(--oee-surface-2)]/40 hover:text-[var(--oee-nav-link-hover)]")
                         }
                       >
                         <span className="text-sm">👥</span>
@@ -260,20 +260,20 @@ export default function OEEFrame({ children }) {
       {/* Main Content */}
       <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'}`}>
         {/* Top Header */}
-        <header className="sticky top-0 z-10 border-b border-[var(--oee-border)] bg-gradient-to-r from-[#0b1426] via-[#0d1b35] to-[#0b1426] px-4 py-2 lg:ml-0">
+        <header className="sticky top-0 z-10 border-b border-[var(--oee-border)] bg-gradient-to-r from-[var(--oee-nav-grad-from)] via-[var(--oee-nav-grad-via)] to-[var(--oee-nav-grad-from)] px-4 py-2 lg:ml-0">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 p-2 text-slate-400 hover:text-slate-200"
+                className="lg:hidden rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 p-2 text-[var(--oee-nav-link)] hover:text-[var(--oee-nav-link-hover)]"
               >
                 ☰
               </button>
               {sidebarCollapsed && <img src="/Logo.png" alt="FOSTEC" className="hidden lg:block h-7 object-contain" />}
               <div className="hidden lg:block h-5 w-px bg-[var(--oee-border)]" />
               <div className="hidden lg:block leading-tight">
-                <div className="text-[13px] font-extrabold tracking-wide text-slate-100">OEE Monitor</div>
-                <div className="text-[10px] uppercase tracking-[0.22em] text-slate-500">INTELLIGENT MANAGEMENT 4.0</div>
+                <div className="text-[13px] font-extrabold tracking-wide text-[var(--oee-nav-title)]">OEE Monitor</div>
+                <div className="text-[10px] uppercase tracking-[0.22em] text-[var(--oee-nav-subtitle)]">INTELLIGENT MANAGEMENT 4.0</div>
               </div>
             </div>
 
@@ -286,11 +286,11 @@ export default function OEEFrame({ children }) {
 
               <div className="rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1 font-mono text-[10px] hidden sm:block">
                 <span className="font-bold text-sky-400">{kpi.oee}%</span>
-                <span className="mx-1 text-slate-700">=</span>
+                <span className="mx-1 text-[var(--oee-text-muted)]">=</span>
                 <span className="text-emerald-400">{kpi.avail}</span>
-                <span className="text-slate-700">×</span>
+                <span className="text-[var(--oee-text-muted)]">×</span>
                 <span className="text-amber-400">{kpi.perf}</span>
-                <span className="text-slate-700">×</span>
+                <span className="text-[var(--oee-text-muted)]">×</span>
                 <span className="text-violet-400">{kpi.qual}</span>
               </div>
 
@@ -302,7 +302,7 @@ export default function OEEFrame({ children }) {
                   style={{
                     borderColor: dayShift.color || '#3b82f6',
                     backgroundColor: `${dayShift.color || '#3b82f6'}20`,
-                    color: '#e2e8f0'
+                    color: 'var(--oee-nav-chip-text)'
                   }}
                 >
                   <span 
@@ -321,10 +321,10 @@ export default function OEEFrame({ children }) {
               </div>
 
               <div className="shrink-0 text-center">
-                <div className="font-mono text-[17px] sm:text-[20px] font-extrabold leading-none text-slate-100">
+                <div className="font-mono text-[17px] sm:text-[20px] font-extrabold leading-none text-[var(--oee-nav-title)]">
                   {time.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}
                 </div>
-                <div className="mt-1 text-[8px] font-medium text-slate-400 leading-none">
+                <div className="mt-1 text-[8px] font-medium text-[var(--oee-nav-subtitle)] leading-none">
                   {time.toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })}
                 </div>
               </div>
@@ -349,7 +349,7 @@ export default function OEEFrame({ children }) {
                       {user.role}
                     </div>
                   </div>
-                  <div className="ml-1 text-slate-500">
+                  <div className="ml-1 text-[var(--oee-text-muted)]">
                     {showUserMenu ? "▲" : "▼"}
                   </div>
                 </button>
@@ -367,7 +367,7 @@ export default function OEEFrame({ children }) {
                             setShowUserMenu(false);
                             router.push("/user-settings");
                           }}
-                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm text-slate-300 hover:bg-slate-700/50 transition-colors"
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm text-[var(--oee-text-body)] hover:bg-[var(--oee-surface-2)] transition-colors"
                         >
                           <span>⚙️</span>
                           <span>User Settings</span>
@@ -392,7 +392,7 @@ export default function OEEFrame({ children }) {
               <div className="md:hidden">
                 <button
                   onClick={() => setMobileActionsOpen((v) => !v)}
-                  className="rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1 text-[11px] font-semibold text-slate-300 hover:text-slate-100"
+                  className="rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 px-2 py-1 text-[11px] font-semibold text-[var(--oee-text-body)] hover:text-[var(--oee-text-heading)]"
                   aria-expanded={mobileActionsOpen}
                   aria-controls="oee-mobile-actions"
                   title="Actions"
@@ -423,7 +423,7 @@ export default function OEEFrame({ children }) {
                     setShowShift(true);
                     setMobileActionsOpen(false);
                   }}
-                  className="flex-1 rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 px-2 py-2 text-[11px] font-semibold text-slate-300 hover:text-slate-100"
+                  className="flex-1 rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 px-2 py-2 text-[11px] font-semibold text-[var(--oee-text-body)] hover:text-[var(--oee-text-heading)]"
                 >
                   ⏰ Shift
                 </button>
@@ -432,7 +432,7 @@ export default function OEEFrame({ children }) {
                     setShowExport(true);
                     setMobileActionsOpen(false);
                   }}
-                  className="flex-1 rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 px-2 py-2 text-[11px] font-semibold text-slate-300 hover:text-slate-100"
+                  className="flex-1 rounded-md border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/50 px-2 py-2 text-[11px] font-semibold text-[var(--oee-text-body)] hover:text-[var(--oee-text-heading)]"
                 >
                   📤 Export
                 </button>
