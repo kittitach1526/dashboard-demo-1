@@ -47,20 +47,113 @@ function downloadBlob(name, blob) {
   URL.revokeObjectURL(url);
 }
 
-function buildRows(ms) {
-  const header = ["Machine", "Line", "OEE%", "Avail%", "Perf%", "Qual%", "Status", "Good", "Total", "Downtime(min)"];
-  const rows = ms.map((m) => [
-    m.name,
-    m.line,
-    m.oee,
-    Math.round(m.availability),
-    Math.round(m.performance),
-    Math.round(m.quality),
-    m.status,
-    m.goodCount,
-    m.totalCount,
-    m.downtimeMins,
-  ]);
+function hashSeed(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function seededUnit(seed) {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+function genDayMachineRow(machine, isoDate) {
+  const seed0 = hashSeed(`${isoDate}:${machine.id}:${machine.line}`) + 20240406;
+  const r0 = seededUnit(seed0);
+  const r1 = seededUnit(seed0 + 1);
+  const r2 = seededUnit(seed0 + 2);
+  const r3 = seededUnit(seed0 + 3);
+
+  const d = new Date(`${isoDate}T00:00:00`);
+  const dow = d.getDay();
+  const isWeekend = dow === 0 || dow === 6;
+
+  const base = 78 + (hashSeed(String(machine.id)) % 14);
+  const weekendMul = isWeekend ? 0.88 : 1.0;
+
+  const hasBreakdown = r0 < 0.08;
+  const breakdownMul = hasBreakdown ? 0.62 : 1.0;
+  const drift = (r1 - 0.5) * 14;
+
+  const oee = clamp(Math.round(base * weekendMul * breakdownMul + drift), 12, 96);
+  const availability = clamp(Math.round(oee * (0.92 + r2 * 0.06)), 10, 100);
+  const performance = clamp(Math.round(oee * (0.90 + r3 * 0.08)), 10, 100);
+  const quality = clamp(Math.round(oee * (0.94 + r1 * 0.04)), 10, 100);
+
+  const status = hasBreakdown ? "breakdown" : oee >= 70 ? "running" : "idle";
+
+  const total = Math.round(900 + r2 * 1800);
+  const good = Math.max(0, Math.round(total * clamp(quality, 0, 100) / 100));
+  const downtimeMins = hasBreakdown ? Math.round(120 + r3 * 260) : Math.round(r0 * 60);
+
+  return {
+    isoDate,
+    machineName: machine.name,
+    line: machine.line,
+    oee,
+    availability,
+    performance,
+    quality,
+    status,
+    good,
+    total,
+    downtimeMins,
+  };
+}
+
+function eachISODateInclusive(startISO, endISO) {
+  const out = [];
+  if (!startISO || !endISO) return out;
+  const start = new Date(`${startISO}T00:00:00`);
+  const end = new Date(`${endISO}T00:00:00`);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return out;
+  const dir = start <= end ? 1 : -1;
+  const cur = new Date(start);
+  while ((dir === 1 && cur <= end) || (dir === -1 && cur >= end)) {
+    out.push(toISODate(cur));
+    cur.setDate(cur.getDate() + dir);
+  }
+  return out;
+}
+
+function buildRows(ms, startISO, endISO) {
+  const header = [
+    "Date",
+    "Machine",
+    "Line",
+    "OEE%",
+    "Avail%",
+    "Perf%",
+    "Qual%",
+    "Status",
+    "Good",
+    "Total",
+    "Downtime(min)",
+  ];
+
+  const dates = eachISODateInclusive(startISO, endISO);
+  const rows = [];
+
+  for (const iso of dates) {
+    for (const m of ms) {
+      const r = genDayMachineRow(m, iso);
+      rows.push([
+        r.isoDate,
+        r.machineName,
+        r.line,
+        r.oee,
+        r.availability,
+        r.performance,
+        r.quality,
+        r.status,
+        r.good,
+        r.total,
+        r.downtimeMins,
+      ]);
+    }
+  }
+
   return { header, rows };
 }
 
@@ -161,10 +254,17 @@ export default function DataExportProPage() {
     return ticks.map((v, i) => ({ v, label: labels[i] }));
   }, []);
 
-  const { header, rows } = useMemo(() => buildRows(ms), [ms]);
+  const { header, rows } = useMemo(() => buildRows(ms, computed.start, computed.end), [computed.end, computed.start, ms]);
 
   const startTime = minutesToHHMM(startMin);
   const endTime = minutesToHHMM(endMin);
+
+  const timeOptions = useMemo(() => {
+    return Array.from({ length: 96 }, (_, i) => {
+      const mins = i * 15;
+      return { mins, label: minutesToHHMM(mins) };
+    });
+  }, []);
 
   const timeLabel = `${startTime}-${endTime}`;
   const timeLabelSafe = timeLabel.replace(/:/g, "");
@@ -376,85 +476,45 @@ export default function DataExportProPage() {
                     <div className="font-mono text-[11px] text-slate-300">{startTime} → {endTime}</div>
                   </div>
 
-                  <div className="mt-3 flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        const step = 15;
-                        const nextStart = clamp(startMin - step, 0, endMin);
-                        setStartMin(nextStart);
-                      }}
-                      className="rounded-lg border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/30 px-3 py-2 text-sm font-black text-slate-300 hover:text-white"
-                      title="Start earlier"
-                    >
-                      ◀
-                    </button>
-
-                    <div className="flex-1">
+                  <div className="mt-3 grid grid-cols-2 gap-3">
+                    <div>
                       <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Start</div>
-                      <input
-                        type="range"
-                        min={0}
-                        max={1439}
-                        step={15}
-                        value={clamp(startMin, 0, endMin)}
-                        onChange={(e) => setStartMin(Math.min(Number(e.target.value), endMin))}
-                        className="w-full"
-                      />
+                      <select
+                        value={startMin}
+                        onChange={(e) => {
+                          const next = Number(e.target.value);
+                          setStartMin(Math.min(next, endMin));
+                        }}
+                        className="mt-2 w-full rounded-lg border border-[var(--oee-border)] bg-[var(--oee-surface)]/40 px-3 py-2 text-sm font-mono text-slate-200 outline-none focus:border-sky-500"
+                      >
+                        {timeOptions.map((t) => (
+                          <option key={t.mins} value={t.mins}>
+                            {t.label}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
-                    <button
-                      onClick={() => {
-                        const step = 15;
-                        const nextStart = clamp(startMin + step, 0, endMin);
-                        setStartMin(nextStart);
-                      }}
-                      className="rounded-lg border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/30 px-3 py-2 text-sm font-black text-slate-300 hover:text-white"
-                      title="Start later"
-                    >
-                      ▶
-                    </button>
-                  </div>
-
-                  <div className="mt-3 flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        const step = 15;
-                        const nextEnd = clamp(endMin - step, startMin, 1439);
-                        setEndMin(nextEnd);
-                      }}
-                      className="rounded-lg border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/30 px-3 py-2 text-sm font-black text-slate-300 hover:text-white"
-                      title="End earlier"
-                    >
-                      ◀
-                    </button>
-
-                    <div className="flex-1">
+                    <div>
                       <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">End</div>
-                      <input
-                        type="range"
-                        min={0}
-                        max={1439}
-                        step={15}
-                        value={clamp(endMin, startMin, 1439)}
-                        onChange={(e) => setEndMin(Math.max(Number(e.target.value), startMin))}
-                        className="w-full"
-                      />
+                      <select
+                        value={endMin}
+                        onChange={(e) => {
+                          const next = Number(e.target.value);
+                          setEndMin(Math.max(next, startMin));
+                        }}
+                        className="mt-2 w-full rounded-lg border border-[var(--oee-border)] bg-[var(--oee-surface)]/40 px-3 py-2 text-sm font-mono text-slate-200 outline-none focus:border-sky-500"
+                      >
+                        {timeOptions.map((t) => (
+                          <option key={t.mins} value={t.mins}>
+                            {t.label}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-
-                    <button
-                      onClick={() => {
-                        const step = 15;
-                        const nextEnd = clamp(endMin + step, startMin, 1439);
-                        setEndMin(nextEnd);
-                      }}
-                      className="rounded-lg border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/30 px-3 py-2 text-sm font-black text-slate-300 hover:text-white"
-                      title="End later"
-                    >
-                      ▶
-                    </button>
                   </div>
 
-                  <div className="mt-2 text-[10px] text-slate-500">เลื่อนเวลาได้ทีละ 15 นาที และจะล็อคไม่ให้ Start มากกว่า End</div>
+                  <div className="mt-2 text-[10px] text-slate-500">เลือกเวลาเป็นช่วงละ 15 นาที และจะล็อคไม่ให้ Start มากกว่า End</div>
                 </div>
               </div>
 
