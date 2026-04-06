@@ -53,8 +53,8 @@ export default function OEEFrame({ children }) {
 
   const dataSubMenus = [
     { key: "data/history", label: "ข้อมูลย้อนหลัง", icon: "�" },
-    { key: "data/range", label: "ตามช่วงเวลา", icon: "🔍" },
-    { key: "data/export", label: "Export", icon: "📤" },
+    // { key: "data/range", label: "ตามช่วงเวลา", icon: "🔍" },
+    // { key: "data/export", label: "Export", icon: "📤" },
     { key: "data/export-pro", label: "Export (Pro)", icon: "✨" },
   ];
 
