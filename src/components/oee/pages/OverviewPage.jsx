@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import GaugeChart from "@/components/oee/charts/GaugeChart";
@@ -162,39 +163,41 @@ export default function OverviewPage() {
     <div className="space-y-3">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
         {[
-          { label: "Overall OEE", val: kpi.oee, color: "#22d3ee", key: "oee", sub: `${kpi.oee >= 85 ? "✓ On Target" : "↓ Below Target"} · Target 85%` },
-          { label: "Availability", val: kpi.avail, color: "#22c55e", key: "avail", sub: `Downtime ${kpi.totalDown}m / Planned ${kpi.planned}m` },
-          { label: "Performance", val: kpi.perf, color: "#f59e0b", key: "perf", sub: `Output ${kpi.totalCount.toLocaleString()} units` },
-          { label: "Quality / FPY", val: kpi.qual, color: "#a78bfa", key: "qual", sub: `Good ${kpi.totalGood.toLocaleString()} · Scrap ${(kpi.totalCount - kpi.totalGood).toLocaleString()}` },
+          { label: "Overall OEE", val: kpi.oee, color: "#22d3ee", key: "oee", href: "/overview", sub: `${kpi.oee >= 85 ? "✓ On Target" : "↓ Below Target"} · Target 85%` },
+          { label: "Availability", val: kpi.avail, color: "#22c55e", key: "avail", href: "/availability", sub: `Downtime ${kpi.totalDown}m / Planned ${kpi.planned}m` },
+          { label: "Performance", val: kpi.perf, color: "#f59e0b", key: "perf", href: "/performance", sub: `Output ${kpi.totalCount.toLocaleString()} units` },
+          { label: "Quality / FPY", val: kpi.qual, color: "#a78bfa", key: "qual", href: "/quality", sub: `Good ${kpi.totalGood.toLocaleString()} · Scrap ${(kpi.totalCount - kpi.totalGood).toLocaleString()}` },
         ].map((k) => (
-          <Card key={k.label} title={`● ${k.label}`}>
-            <div className="flex items-center gap-3">
-              <div className="shrink-0">
-                <GaugeChart value={k.val} color={k.color} size={76} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="font-mono text-3xl font-extrabold leading-none" style={{ color: k.color }}>
-                  {k.val}%
+          <Link key={k.label} href={k.href} className="block">
+            <Card title={`● ${k.label}`}>
+              <div className="flex items-center gap-3">
+                <div className="shrink-0">
+                  <GaugeChart value={k.val} color={k.color} size={76} />
                 </div>
-                <div className="mt-1 text-[11px] text-slate-500 leading-snug">{k.sub}</div>
-                <div className="mt-2">
-                  <Spark
-                    data={
-                      trendHist.length > 1
-                        ? trendHist.map((t) => t[k.key])
-                        : ms.map((m) =>
-                            k.key === "oee" ? m.oee : k.key === "avail" ? m.availability : k.key === "perf" ? m.performance : m.quality
-                          )
-                    }
-                    color={k.color}
-                    target={85}
-                    responsive
-                    className="w-full"
-                  />
+                <div className="min-w-0 flex-1">
+                  <div className="font-mono text-3xl font-extrabold leading-none" style={{ color: k.color }}>
+                    {k.val}%
+                  </div>
+                  <div className="mt-1 text-[11px] text-slate-500 leading-snug">{k.sub}</div>
+                  <div className="mt-2">
+                    <Spark
+                      data={
+                        trendHist.length > 1
+                          ? trendHist.map((t) => t[k.key])
+                          : ms.map((m) =>
+                              k.key === "oee" ? m.oee : k.key === "avail" ? m.availability : k.key === "perf" ? m.performance : m.quality
+                            )
+                      }
+                      color={k.color}
+                      target={85}
+                      responsive
+                      className="w-full"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+          </Link>
         ))}
       </div>
 

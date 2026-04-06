@@ -43,9 +43,9 @@ export default function OEEFrame({ children }) {
   const tabs = [
     { key: "overview", label: "Overview", icon: "⬡" },
     { key: "equipment", label: "Process", icon: "🏭" },
-    { key: "availability", label: "Availability", icon: "⏱️" },
-    { key: "performance", label: "Performance", icon: "🚀" },
-    { key: "quality", label: "Quality", icon: "✅" },
+    // { key: "availability", label: "Availability", icon: "⏱️" },
+    // { key: "performance", label: "Performance", icon: "🚀" },
+    // { key: "quality", label: "Quality", icon: "✅" },
     { key: "analytics", label: "Analytics", icon: "📈" },
     { key: "alerts", label: "Alerts", icon: "🔔" },
     { key: "settings", label: "Setting", icon: "⚙️" },
@@ -75,7 +75,9 @@ export default function OEEFrame({ children }) {
               </button>
             </div>
             <div className={`${sidebarCollapsed ? 'lg:hidden' : ''} flex items-center gap-3`}>
-              <img src="/Logo.png" alt="FOSTEC" className="h-8 object-contain" />
+              <Link href="/overview" className="inline-flex">
+                <img src="/Logo.png" alt="FOSTEC" className="h-8 object-contain" />
+              </Link>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -270,11 +272,15 @@ export default function OEEFrame({ children }) {
               >
                 ☰
               </button>
-              {sidebarCollapsed && <img src="/Logo.png" alt="FOSTEC" className="hidden lg:block h-7 object-contain" />}
+              {sidebarCollapsed && (
+                <Link href="/overview" className="hidden lg:inline-flex">
+                  <img src="/Logo.png" alt="FOSTEC" className="h-7 object-contain" />
+                </Link>
+              )}
               <div className="hidden lg:block h-5 w-px bg-[var(--oee-border)]" />
               <div className="hidden lg:block leading-tight">
                 <div className="text-[13px] font-extrabold tracking-wide text-[var(--oee-nav-title)]">OEE Monitor</div>
-                <div className="text-[10px] uppercase tracking-[0.22em] text-[var(--oee-nav-subtitle)]">INTELLIGENT MANAGEMENT 4.0</div>
+                <div className="text-[10px] text-[var(--oee-text-muted)]">FOSTEC Manufacturing Dashboard</div>
               </div>
             </div>
 
