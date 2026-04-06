@@ -22,8 +22,9 @@ export default async function RootLayout({ children }) {
     <html
       lang="en"
       className="h-full antialiased"
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <Script
           id="oee-theme-init"
           strategy="beforeInteractive"

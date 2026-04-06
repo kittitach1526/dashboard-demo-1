@@ -2,14 +2,24 @@
 
 import { useMemo, useState } from "react";
 
-import Card from "@/components/oee/ui/Card";
-
 import { useOEE } from "@/components/oee/OEEContext";
 import { ROLE_ACCESS } from "@/lib/oee/constants";
 import { getActiveShift } from "@/lib/oee/derived";
 
+import Card from "@/components/oee/ui/Card";
+
 import DataEntryModal from "@/components/oee/modals/DataEntryModal";
 import ShiftModal from "@/components/oee/modals/ShiftModal";
+
+function AccessRestricted({ role }) {
+  return (
+    <div className="rounded-xl border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 p-10 text-center text-slate-400">
+      <div className="text-4xl mb-2">🔒</div>
+      <div className="text-sm font-semibold text-slate-300">Access Restricted</div>
+      <div className="text-xs mt-1">Role: {role}</div>
+    </div>
+  );
+}
 
 export default function DataEntryPage() {
   const { user, ms, shifts, setShifts, time } = useOEE();
@@ -20,14 +30,13 @@ export default function DataEntryPage() {
 
   const activeShift = useMemo(() => getActiveShift(shifts, time), [shifts, time]);
 
+  const openEntry = () => setShowEntry(true);
+  const openShift = () => setShowShift(true);
+  const closeEntry = () => setShowEntry(false);
+  const closeShift = () => setShowShift(false);
+
   if (!allowed.includes("settings")) {
-    return (
-      <div className="rounded-xl border border-[var(--oee-border)] bg-[var(--oee-surface-2)]/60 p-10 text-center text-slate-400">
-        <div className="text-4xl mb-2">🔒</div>
-        <div className="text-sm font-semibold text-slate-300">Access Restricted</div>
-        <div className="text-xs mt-1">Role: {user?.role}</div>
-      </div>
-    );
+    return <AccessRestricted role={user?.role} />;
   }
 
   return (
@@ -40,13 +49,13 @@ export default function DataEntryPage() {
 
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <button
-              onClick={() => setShowEntry(true)}
+              onClick={openEntry}
               className="rounded-xl bg-gradient-to-br from-sky-500 to-indigo-500 px-6 py-3 text-sm font-bold text-white"
             >
               📦 กรอกข้อมูลการผลิต
             </button>
             <button
-              onClick={() => setShowShift(true)}
+              onClick={openShift}
               className="rounded-xl border border-sky-500/30 bg-sky-500/10 px-6 py-3 text-sm font-bold text-sky-200"
             >
               ⏰ ตั้งค่ากะการทำงาน
@@ -88,13 +97,13 @@ export default function DataEntryPage() {
         </div>
       </Card>
 
-      {showShift && <ShiftModal shifts={shifts} onSave={setShifts} onClose={() => setShowShift(false)} />}
+      {showShift && <ShiftModal shifts={shifts} onSave={setShifts} onClose={closeShift} />}
       {showEntry && (
         <DataEntryModal
           machines={ms}
           shifts={shifts}
           onSave={(data) => console.log("Saved:", data)}
-          onClose={() => setShowEntry(false)}
+          onClose={closeEntry}
         />
       )}
     </div>

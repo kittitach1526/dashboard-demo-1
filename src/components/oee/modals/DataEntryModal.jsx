@@ -4,11 +4,8 @@ import { useMemo, useState } from "react";
 
 import ModalShell from "@/components/oee/modals/ModalShell";
 
-export default function DataEntryModal({ machines, shifts, onSave, onClose }) {
-  const [tab, setTab] = useState("production");
-  const [status, setStatus] = useState("running");
-
-  const [form, setForm] = useState(() => ({
+function createInitialForm(machines, shifts) {
+  return {
     machine: machines[0]?.id || "M01",
     shift: shifts.find((s) => s.active)?.id || 1,
     date: new Date().toISOString().slice(0, 10),
@@ -27,18 +24,27 @@ export default function DataEntryModal({ machines, shifts, onSave, onClose }) {
     dtEnd: "",
     dtReason: "mechanical",
     dtNotes: "",
-  }));
+  };
+}
+
+function computeDerived(form) {
+  const runMins = form.plannedMins - (form.downtimeMins || 0);
+  const avail = form.availability || 0;
+  const perf = form.performance || 0;
+  const qual = form.quality || 0;
+  const oee = (avail * perf * qual) / 10000;
+  return { runMins, avail, perf, qual, oeeDisp: Math.round(oee * 10) / 10 };
+}
+
+export default function DataEntryModal({ machines, shifts, onSave, onClose }) {
+  const [tab, setTab] = useState("production");
+  const [status, setStatus] = useState("running");
+
+  const [form, setForm] = useState(() => createInitialForm(machines, shifts));
 
   const upd = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
-  const derived = useMemo(() => {
-    const runMins = form.plannedMins - (form.downtimeMins || 0);
-    const avail = form.availability || 0;
-    const perf = form.performance || 0;
-    const qual = form.quality || 0;
-    const oee = (avail * perf * qual) / 10000;
-    return { runMins, avail, perf, qual, oeeDisp: Math.round(oee * 10) / 10 };
-  }, [form]);
+  const derived = useMemo(() => computeDerived(form), [form]);
 
   const [saved, setSaved] = useState(false);
   const save = () => {
